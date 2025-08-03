@@ -128,6 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           averages: { systolic: 0, diastolic: 0, pulse: 0, pulseStressure: 0, meanArterialPressure: 0 },
           ranges: { systolic: { min: 0, max: 0 }, diastolic: { min: 0, max: 0 }, pulse: { min: 0, max: 0 } },
           distribution: {},
+          period: { startDate, endDate, days },
         });
       }
 

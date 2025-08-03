@@ -265,18 +265,30 @@ export default function Home() {
                   <h3 className="text-sm font-medium text-slate-500 mb-2">
                     Average blood pressure ({dateFilter} days)
                   </h3>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-slate-900">
-                        {statistics.averages.systolic}/{statistics.averages.diastolic}{" "}
-                        <span className="text-lg font-normal text-slate-500">mmHg</span>
+                  {statistics.totalReadings > 0 ? (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-3xl font-bold text-slate-900">
+                          {statistics.averages.systolic}/{statistics.averages.diastolic}{" "}
+                          <span className="text-lg font-normal text-slate-500">mmHg</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-slate-700">Hypertension Stage 1</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-slate-700">Hypertension Stage 1</span>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-slate-400 mb-2">
+                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-medium text-slate-900 mb-1">No readings yet</h3>
+                      <p className="text-sm text-slate-500">Add your first blood pressure reading to see statistics</p>
                     </div>
-                  </div>
+                  )}
                 </Card>
 
                 {/* Classification Note */}
@@ -287,58 +299,66 @@ export default function Home() {
                 {/* Detailed Statistics */}
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                    {statistics.totalReadings} readings ({format(new Date(statistics.period.startDate), 'MMM d, yyyy')} - {format(new Date(statistics.period.endDate), 'MMM d, yyyy')})
+                    {statistics.totalReadings} readings {statistics.period && statistics.totalReadings > 0 ? `(${format(new Date(statistics.period.startDate), 'MMM d, yyyy')} - ${format(new Date(statistics.period.endDate), 'MMM d, yyyy')})` : '(No data yet)'}
                   </h3>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-xs font-medium text-slate-500 border-b border-slate-200">
-                          <th className="text-left py-2"></th>
-                          <th className="text-center py-2">Min</th>
-                          <th className="text-center py-2">Max</th>
-                          <th className="text-center py-2">Average</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-sm">
-                        <tr className="border-b border-slate-100">
-                          <td className="py-3 font-medium text-slate-900">Systolic</td>
-                          <td className="text-center py-3">{statistics.ranges.systolic.min}</td>
-                          <td className="text-center py-3">{statistics.ranges.systolic.max}</td>
-                          <td className="text-center py-3 font-semibold">{statistics.averages.systolic}</td>
-                        </tr>
-                        <tr className="border-b border-slate-100">
-                          <td className="py-3 font-medium text-slate-900">Diastolic</td>
-                          <td className="text-center py-3">{statistics.ranges.diastolic.min}</td>
-                          <td className="text-center py-3">{statistics.ranges.diastolic.max}</td>
-                          <td className="text-center py-3 font-semibold">{statistics.averages.diastolic}</td>
-                        </tr>
-                        <tr className="border-b border-slate-100">
-                          <td className="py-3 font-medium text-slate-900">Pulse</td>
-                          <td className="text-center py-3">{statistics.ranges.pulse.min}</td>
-                          <td className="text-center py-3">{statistics.ranges.pulse.max}</td>
-                          <td className="text-center py-3 font-semibold">{statistics.averages.pulse}</td>
-                        </tr>
-                        <tr className="border-b border-slate-100">
-                          <td className="py-3 font-medium text-slate-900">PP</td>
-                          <td className="text-center py-3">-</td>
-                          <td className="text-center py-3">-</td>
-                          <td className="text-center py-3 font-semibold">{statistics.averages.pulseStressure}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-3 font-medium text-slate-900">MAP</td>
-                          <td className="text-center py-3">-</td>
-                          <td className="text-center py-3">-</td>
-                          <td className="text-center py-3 font-semibold">{statistics.averages.meanArterialPressure}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  {statistics.totalReadings > 0 ? (
+                    <>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="text-xs font-medium text-slate-500 border-b border-slate-200">
+                              <th className="text-left py-2"></th>
+                              <th className="text-center py-2">Min</th>
+                              <th className="text-center py-2">Max</th>
+                              <th className="text-center py-2">Average</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-sm">
+                            <tr className="border-b border-slate-100">
+                              <td className="py-3 font-medium text-slate-900">Systolic</td>
+                              <td className="text-center py-3">{statistics.ranges.systolic.min}</td>
+                              <td className="text-center py-3">{statistics.ranges.systolic.max}</td>
+                              <td className="text-center py-3 font-semibold">{statistics.averages.systolic}</td>
+                            </tr>
+                            <tr className="border-b border-slate-100">
+                              <td className="py-3 font-medium text-slate-900">Diastolic</td>
+                              <td className="text-center py-3">{statistics.ranges.diastolic.min}</td>
+                              <td className="text-center py-3">{statistics.ranges.diastolic.max}</td>
+                              <td className="text-center py-3 font-semibold">{statistics.averages.diastolic}</td>
+                            </tr>
+                            <tr className="border-b border-slate-100">
+                              <td className="py-3 font-medium text-slate-900">Pulse</td>
+                              <td className="text-center py-3">{statistics.ranges.pulse.min}</td>
+                              <td className="text-center py-3">{statistics.ranges.pulse.max}</td>
+                              <td className="text-center py-3 font-semibold">{statistics.averages.pulse}</td>
+                            </tr>
+                            <tr className="border-b border-slate-100">
+                              <td className="py-3 font-medium text-slate-900">PP</td>
+                              <td className="text-center py-3">-</td>
+                              <td className="text-center py-3">-</td>
+                              <td className="text-center py-3 font-semibold">{statistics.averages.pulseStressure}</td>
+                            </tr>
+                            <tr>
+                              <td className="py-3 font-medium text-slate-900">MAP</td>
+                              <td className="text-center py-3">-</td>
+                              <td className="text-center py-3">-</td>
+                              <td className="text-center py-3 font-semibold">{statistics.averages.meanArterialPressure}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
 
-                  <div className="mt-4 text-xs text-slate-500">
-                    <p>PP = Pulse pressure • MAP = Mean arterial pressure</p>
-                    <p>Units: Systolic, Diastolic, PP, MAP (mmHg) • Pulse (BPM)</p>
-                  </div>
+                      <div className="mt-4 text-xs text-slate-500">
+                        <p>PP = Pulse pressure • MAP = Mean arterial pressure</p>
+                        <p>Units: Systolic, Diastolic, PP, MAP (mmHg) • Pulse (BPM)</p>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-slate-500">
+                      <p>Start tracking your blood pressure to view detailed statistics</p>
+                    </div>
+                  )}
                 </Card>
 
                 {/* Export Buttons */}
