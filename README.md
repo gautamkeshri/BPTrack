@@ -41,11 +41,24 @@ A comprehensive web application for tracking, analyzing, and sharing blood press
 # Install dependencies
 npm install
 
+# Copy environment configuration
+cp .env.example .env
+
 # Start development server (uses in-memory storage)
 npm run dev
 
 # Access application
 open http://localhost:5000
+```
+
+#### Windows Users
+For Windows-specific setup instructions, see **[Windows Setup Guide](WINDOWS_SETUP.md)**
+
+**Quick Windows Setup:**
+```cmd
+npm install
+copy .env.example .env
+npm run dev
 ```
 
 ### Production Setup with MySQL
@@ -63,16 +76,23 @@ mysql -u root -p blood_pressure_app < database/test_data.sql
 ```
 
 #### 2. Environment Configuration
+Create a `.env` file in the root directory:
 ```bash
-# Set environment variables
-export DATABASE_URL="mysql://username:password@host:port/blood_pressure_app"
-export NODE_ENV="production"
-export DB_HOST="localhost"
-export DB_PORT="3306"
-export DB_USER="your_username"
-export DB_PASSWORD="your_password"
-export DB_NAME="blood_pressure_app"
+# Copy the example file
+cp .env.example .env
+
+# Edit .env file with your configuration
+NODE_ENV=production
+DATABASE_URL=mysql://username:password@localhost:3306/blood_pressure_app
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=blood_pressure_app
+SESSION_SECRET=your-secret-key-change-this-in-production
 ```
+
+**Windows Users**: Use `copy .env.example .env` instead of `cp`
 
 #### 3. Start Production Server
 ```bash
