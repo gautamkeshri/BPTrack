@@ -155,7 +155,7 @@ export default function Home() {
                       {latestReading.systolic}/{latestReading.diastolic}
                     </div>
                     <div className="text-xs opacity-80">
-                      {formatReadingDate(latestReading.readingDate)}
+                      {formatReadingDate(latestReading.readingDate.toString())}
                     </div>
                   </div>
                   <div className="text-right">

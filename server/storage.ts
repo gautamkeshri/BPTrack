@@ -80,6 +80,7 @@ export class MemStorage implements IStorage {
     const profile: Profile = {
       ...insertProfile,
       id,
+      medicalConditions: insertProfile.medicalConditions || [],
       isActive: false,
       createdAt: new Date(),
     };
@@ -98,7 +99,8 @@ export class MemStorage implements IStorage {
 
   async setActiveProfile(id: string): Promise<void> {
     // Set all profiles inactive
-    for (const profile of this.profiles.values()) {
+    const profilesArray = Array.from(this.profiles.values());
+    for (const profile of profilesArray) {
       profile.isActive = false;
     }
     
@@ -181,6 +183,8 @@ export class MemStorage implements IStorage {
     const reminder: Reminder = {
       ...insertReminder,
       id,
+      isRepeating: insertReminder.isRepeating || false,
+      daysOfWeek: insertReminder.daysOfWeek || [],
       isActive: true,
       createdAt: new Date(),
     };
