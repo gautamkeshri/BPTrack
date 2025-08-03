@@ -109,6 +109,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             className="text-slate-600 hover:text-slate-900"
+            onClick={() => setShowProfileSelector(true)}
           >
             <Menu className="h-5 w-5" />
           </Button>

@@ -116,7 +116,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
                   <h3 className="font-semibold text-slate-900">{profile.name}</h3>
                   <p className="text-sm text-slate-500">
                     {profile.gender === 'male' ? 'Male' : 'Female'} • {profile.age} years old
-                    {profile.medicalConditions && profile.medicalConditions.length > 0 && 
+                    {Array.isArray(profile.medicalConditions) && profile.medicalConditions.length > 0 && 
                       ` • ${profile.medicalConditions.join(', ')}`
                     }
                   </p>

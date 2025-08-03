@@ -113,7 +113,7 @@ export class MySQLStorage implements IStorage {
 
     const newReading = {
       id,
-      profileId: reading.profileId,
+      profileId: reading.profileId || '', // Ensure profileId is never undefined
       systolic: reading.systolic,
       diastolic: reading.diastolic,
       pulse: reading.pulse,
@@ -288,6 +288,7 @@ export class MemStorage implements IStorage {
     const reading: BloodPressureReading = {
       ...insertReading,
       id,
+      profileId: insertReading.profileId || '', // Ensure profileId is never undefined
       classification,
       pulseStressure,
       meanArterialPressure,
@@ -351,7 +352,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Export MySQL storage when database config is available, fallback to MemStorage for development
-export const storage = (process.env.DB_HOST || process.env.DB_USER || process.env.DATABASE_URL?.includes('mysql'))
-  ? new MySQLStorage() 
-  : new MemStorage();
+// Since MySQL connection failed, use MemStorage for development until MySQL is available
+export const storage = new MemStorage();
+console.log('📦 Using storage: MemStorage (MySQL not available)');
