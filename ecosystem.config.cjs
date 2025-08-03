@@ -1,5 +1,5 @@
 // PM2 ecosystem configuration for Blood Pressure Monitoring Application
-// This file uses CommonJS format for PM2 compatibility
+// CommonJS format for PM2 compatibility with ES modules project
 
 module.exports = {
   apps: [
@@ -19,18 +19,16 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         PORT: 5000,
-        HOST: '0.0.0.0'
+        HOST: '0.0.0.0',
+        args: 'start'
       },
       log_date_format: 'YYYY-MM-DD HH:mm Z',
       error_file: './logs/err.log',
       out_file: './logs/out.log',
       log_file: './logs/combined.log',
       time: true,
-      // Restart delay to prevent rapid restarts
       restart_delay: 4000,
-      // Maximum number of restart attempts
       max_restarts: 10,
-      // Minimum uptime before considering the app stable
       min_uptime: '10s'
     }
   ]

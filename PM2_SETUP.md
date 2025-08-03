@@ -26,12 +26,17 @@ cp .env.example .env
 
 **Development Mode:**
 ```bash
-pm2 start ecosystem.config.js --env development
+pm2 start ecosystem.config.cjs --env development
 ```
 
 **Production Mode:**
 ```bash
-pm2 start ecosystem.config.js --env production
+pm2 start ecosystem.config.cjs --env production
+```
+
+**Alternative (if .cjs doesn't work):**
+```bash
+pm2 start ecosystem.config.js --env development
 ```
 
 ### Direct PM2 Commands (Alternative)
