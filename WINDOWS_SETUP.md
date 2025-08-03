@@ -78,6 +78,16 @@ mysql -u root -p blood_pressure_app < database/test_data.sql
 4. Import `database/schema.sql`
 5. Import `database/test_data.sql` (optional)
 
+#### Troubleshooting Schema Import
+If you encounter errors during schema import:
+
+1. **DELIMITER issues**: The schema file is now corrected with proper DELIMITER usage
+2. **UUID() function errors**: Requires MySQL 8.0+. Consider upgrading your MySQL version
+3. **JSON column errors**: Requires MySQL 5.7.8+
+4. **Generated columns errors**: Requires MySQL 5.7+
+
+**For older MySQL versions**, see `database/README.md` for compatibility alternatives.
+
 ### 5. Running the Application
 
 #### Development Mode (In-Memory Storage)

@@ -51,6 +51,105 @@ mysql -u root -p blood_pressure_app < database/schema.sql
 mysql -u root -p blood_pressure_app < database/test_data.sql
 ```
 
+## Troubleshooting Schema Import
+
+### Common Import Issues and Solutions
+
+#### 1. DELIMITER Command Issues
+**Error**: `ERROR 1064 (42000): You have an error in your SQL syntax`
+
+**Solution**: The updated schema.sql file correctly uses DELIMITER blocks for all stored procedures and functions. Ensure you're using the latest version.
+
+#### 2. UUID() Function Issues
+**Error**: `ERROR 1305 (42000): FUNCTION UUID does not exist`
+
+**Solution**: Use MySQL 8.0+ which supports UUID() function, or replace with alternative:
+```sql
+-- For older MySQL versions, replace UUID() with:
+CHAR(36) DEFAULT (CONCAT(
+    SUBSTRING(REPLACE(UUID(), '-', ''), 1, 8), '-',
+    SUBSTRING(REPLACE(UUID(), '-', ''), 9, 4), '-',
+    SUBSTRING(REPLACE(UUID(), '-', ''), 13, 4), '-',
+    SUBSTRING(REPLACE(UUID(), '-', ''), 17, 4), '-',
+    SUBSTRING(REPLACE(UUID(), '-', ''), 21, 12)
+))
+```
+
+#### 3. JSON Column Type Issues
+**Error**: `ERROR 1064: JSON column support requires MySQL 5.7.8 or later`
+
+**Solution**: Upgrade to MySQL 5.7.8+ or replace JSON columns with TEXT:
+```sql
+medical_conditions TEXT DEFAULT NULL,
+days_of_week TEXT DEFAULT NULL,
+```
+
+#### 4. Generated Columns Issues
+**Error**: `ERROR 1064: GENERATED ALWAYS AS syntax error`
+
+**Solution**: Use MySQL 5.7+ for generated columns, or use regular columns with triggers:
+```sql
+pulse_pressure INT,
+mean_arterial_pressure DECIMAL(5,1),
+```
+
+#### 5. CHECK Constraint Issues
+**Error**: `ERROR 3823: CHECK constraint is not supported`
+
+**Solution**: CHECK constraints require MySQL 8.0.16+. For older versions, use triggers instead.
+
+### Manual Schema Import (Step by Step)
+
+If automatic import fails, run sections manually:
+
+```sql
+-- 1. Connect to MySQL
+mysql -u root -p
+
+-- 2. Create and use database
+CREATE DATABASE blood_pressure_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE blood_pressure_app;
+
+-- 3. Run each section from schema.sql separately:
+-- - Tables first
+-- - Then triggers
+-- - Then stored procedures
+-- - Then views
+-- - Finally indexes and functions
+```
+
+### Verification Commands
+
+After successful import, verify the setup:
+
+```sql
+-- Check all tables exist
+SHOW TABLES;
+
+-- Verify table structure
+DESCRIBE users;
+DESCRIBE profiles;
+DESCRIBE blood_pressure_readings;
+DESCRIBE reminders;
+DESCRIBE sessions;
+
+-- Check stored procedures
+SHOW PROCEDURE STATUS WHERE Db = 'blood_pressure_app';
+
+-- Check functions
+SHOW FUNCTION STATUS WHERE Db = 'blood_pressure_app';
+
+-- Check views
+SHOW FULL TABLES WHERE Table_type = 'VIEW';
+
+-- Test procedure
+CALL CalculateBPClassification(140, 90, @result);
+SELECT @result;
+
+-- Test function (if MySQL 8.0+)
+SELECT GetBPClassification(140, 90);
+```
+
 ### 4. Create Application User (Optional)
 ```sql
 CREATE USER 'bp_app_user'@'%' IDENTIFIED BY 'bloodpressure123';
