@@ -1,5 +1,8 @@
-import { type Profile, type InsertProfile, type BloodPressureReading, type InsertBloodPressureReading, type Reminder, type InsertReminder } from "@shared/schema";
+import { type Profile, type InsertProfile, type BloodPressureReading, type InsertBloodPressureReading, type Reminder, type InsertReminder, profiles, bloodPressureReadings, reminders } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { classifyBloodPressure, calculatePulseStressure, calculateMeanArterialPressure } from "../client/src/lib/blood-pressure";
 
 export interface IStorage {
   // Profile methods
@@ -21,6 +24,145 @@ export interface IStorage {
   createReminder(reminder: InsertReminder): Promise<Reminder>;
   updateReminder(id: string, updates: Partial<Reminder>): Promise<Reminder | undefined>;
   deleteReminder(id: string): Promise<boolean>;
+}
+
+export class MySQLStorage implements IStorage {
+  constructor() {
+    // Test database connection on initialization
+    this.testConnection();
+  }
+
+  private async testConnection() {
+    try {
+      const { testConnection } = await import("./db");
+      await testConnection();
+    } catch (error) {
+      console.error("MySQL connection test failed:", error);
+    }
+  }
+
+  // Profile methods
+  async getProfiles(): Promise<Profile[]> {
+    return await db.select().from(profiles);
+  }
+
+  async getProfile(id: string): Promise<Profile | undefined> {
+    const result = await db.select().from(profiles).where(eq(profiles.id, id));
+    return result[0];
+  }
+
+  async getActiveProfile(): Promise<Profile | undefined> {
+    const result = await db.select().from(profiles).where(eq(profiles.isActive, true));
+    return result[0];
+  }
+
+  async createProfile(profile: InsertProfile): Promise<Profile> {
+    const id = randomUUID();
+    const newProfile = {
+      id,
+      ...profile,
+      medicalConditions: profile.medicalConditions || [],
+      isActive: false,
+      createdAt: new Date(),
+    };
+
+    await db.insert(profiles).values([newProfile]);
+    return newProfile as Profile;
+  }
+
+  async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined> {
+    await db.update(profiles).set(updates).where(eq(profiles.id, id));
+    return this.getProfile(id);
+  }
+
+  async setActiveProfile(id: string): Promise<void> {
+    // First, set all profiles to inactive
+    await db.update(profiles).set({ isActive: false });
+    // Then set the specified profile as active
+    await db.update(profiles).set({ isActive: true }).where(eq(profiles.id, id));
+  }
+
+  // Blood pressure reading methods
+  async getReadings(profileId: string): Promise<BloodPressureReading[]> {
+    return await db
+      .select()
+      .from(bloodPressureReadings)
+      .where(eq(bloodPressureReadings.profileId, profileId))
+      .orderBy(desc(bloodPressureReadings.readingDate));
+  }
+
+  async getReadingsByDateRange(profileId: string, startDate: Date, endDate: Date): Promise<BloodPressureReading[]> {
+    return await db
+      .select()
+      .from(bloodPressureReadings)
+      .where(
+        and(
+          eq(bloodPressureReadings.profileId, profileId),
+          gte(bloodPressureReadings.readingDate, startDate),
+          lte(bloodPressureReadings.readingDate, endDate)
+        )
+      )
+      .orderBy(desc(bloodPressureReadings.readingDate));
+  }
+
+  async createReading(reading: InsertBloodPressureReading): Promise<BloodPressureReading> {
+    const id = randomUUID();
+    const classification = classifyBloodPressure(reading.systolic, reading.diastolic);
+    const pulseStressure = calculatePulseStressure(reading.systolic, reading.diastolic);
+    const meanArterialPressure = calculateMeanArterialPressure(reading.systolic, reading.diastolic);
+
+    const newReading = {
+      id,
+      ...reading,
+      readingDate: new Date(reading.readingDate),
+      classification,
+      pulseStressure,
+      meanArterialPressure,
+      createdAt: new Date(),
+    };
+
+    await db.insert(bloodPressureReadings).values([newReading]);
+    return newReading as BloodPressureReading;
+  }
+
+  async deleteReading(id: string): Promise<boolean> {
+    const result = await db.delete(bloodPressureReadings).where(eq(bloodPressureReadings.id, id));
+    return result.changedRows > 0;
+  }
+
+  // Reminder methods
+  async getReminders(profileId: string): Promise<Reminder[]> {
+    return await db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.profileId, profileId))
+      .orderBy(reminders.time);
+  }
+
+  async createReminder(reminder: InsertReminder): Promise<Reminder> {
+    const id = randomUUID();
+    const newReminder = {
+      id,
+      ...reminder,
+      daysOfWeek: reminder.daysOfWeek || [],
+      isActive: true,
+      createdAt: new Date(),
+    };
+
+    await db.insert(reminders).values([newReminder]);
+    return newReminder as Reminder;
+  }
+
+  async updateReminder(id: string, updates: Partial<Reminder>): Promise<Reminder | undefined> {
+    await db.update(reminders).set(updates).where(eq(reminders.id, id));
+    const result = await db.select().from(reminders).where(eq(reminders.id, id));
+    return result[0];
+  }
+
+  async deleteReminder(id: string): Promise<boolean> {
+    const result = await db.delete(reminders).where(eq(reminders.id, id));
+    return result.changedRows > 0;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -206,4 +348,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Export MySQL storage for production, fallback to MemStorage for development
+export const storage = process.env.NODE_ENV === "production" && process.env.DATABASE_URL 
+  ? new MySQLStorage() 
+  : new MemStorage();

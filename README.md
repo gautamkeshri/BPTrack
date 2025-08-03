@@ -1,333 +1,281 @@
 # Blood Pressure Monitoring Application
 
-A comprehensive web application for tracking, analyzing, and managing blood pressure readings with multi-user support, medical-grade reporting, and data visualization following ACC/AHA 2017 guidelines.
+A comprehensive web application for tracking, analyzing, and sharing blood pressure readings with medical-grade accuracy following ACC/AHA 2017 guidelines.
 
-## 🚀 Features
+## 🌟 Features
 
-### Core Functionality
-- **Multi-User Profiles**: Support for multiple family members under one account
-- **Blood Pressure Tracking**: Log systolic, diastolic, and pulse readings with date/time
-- **Medical Classification**: Automatic classification using ACC/AHA 2017 guidelines
-- **Statistics & Analytics**: Comprehensive analysis with 30/60/90-day filtering
-- **Data Visualization**: Interactive charts showing trends and distribution
-- **Medical Reports**: Generate PDF and CSV reports for healthcare professionals
-- **Profile Management**: Easy switching between family member profiles
+### 📊 Blood Pressure Tracking
+- **Medical-Grade Classification**: Automatic categorization using ACC/AHA 2017 guidelines
+- **Calculated Metrics**: Pulse Pressure and Mean Arterial Pressure computation
+- **Date & Time Tracking**: Precise timestamp recording for each measurement
+- **Validation**: Physiologically reasonable ranges (70-250/40-150 mmHg)
 
-### Medical Features
-- **ACC/AHA 2017 Compliance**: Follows latest blood pressure classification guidelines
-- **Calculated Metrics**: Automatic pulse pressure and mean arterial pressure calculation
-- **Classification Categories**: Normal, Elevated, Hypertension Stage 1/2, Hypertensive Crisis
-- **Trend Analysis**: Visual representation of blood pressure patterns over time
-- **Distribution Charts**: See percentage breakdown of readings by classification
+### 👥 Multi-User Profiles
+- **Family Support**: Multiple profiles for different family members
+- **Demographics**: Age, gender, and medical conditions tracking
+- **Data Isolation**: Secure separation of data between profiles
+- **Active Profile**: Quick switching between family members
 
-## 🛠️ Technical Architecture
+### 📈 Data Visualization & Analytics
+- **Interactive Charts**: Trend analysis with Chart.js visualization
+- **Statistical Analysis**: Averages, ranges, and distribution analysis
+- **Time Periods**: 30, 60, and 90-day analysis windows
+- **Classification Distribution**: Visual breakdown by blood pressure category
+
+### 📋 Medical Reports
+- **PDF Generation**: Professional medical reports for healthcare providers
+- **CSV Export**: Raw data export for clinical systems and spreadsheets
+- **Complete History**: All readings with calculated metrics included
+- **Medical Compliance**: ACC/AHA 2017 guideline references included
+
+### ⏰ Reminder System
+- **Medication Reminders**: Custom medication schedules
+- **Appointment Alerts**: Healthcare appointment notifications
+- **Flexible Scheduling**: Daily, weekly, or custom repeat patterns
+- **Time Management**: 24-hour format with precise timing
+
+## 🚀 Quick Start
+
+### Development Setup
+```bash
+# Install dependencies
+npm install
+
+# Start development server (uses in-memory storage)
+npm run dev
+
+# Access application
+open http://localhost:5000
+```
+
+### Production Setup with MySQL
+
+#### 1. Database Setup
+```bash
+# Create MySQL database
+mysql -u root -p -e "CREATE DATABASE blood_pressure_app;"
+
+# Run schema setup
+mysql -u root -p blood_pressure_app < database/schema.sql
+
+# Load test data (optional)
+mysql -u root -p blood_pressure_app < database/test_data.sql
+```
+
+#### 2. Environment Configuration
+```bash
+# Set environment variables
+export DATABASE_URL="mysql://username:password@host:port/blood_pressure_app"
+export NODE_ENV="production"
+export DB_HOST="localhost"
+export DB_PORT="3306"
+export DB_USER="your_username"
+export DB_PASSWORD="your_password"
+export DB_NAME="blood_pressure_app"
+```
+
+#### 3. Start Production Server
+```bash
+npm run build
+npm start
+```
+
+## 🔐 Test Credentials
+
+The application includes comprehensive test data with simple, common passwords for easy testing:
+
+### Default Login Credentials
+**Password for all users**: `bloodpressure123`
+
+### Test User Accounts
+
+| Username | Email | Profile | Description |
+|----------|--------|---------|-------------|
+| `johndoe` | john.doe@email.com | John Doe (46M) | Normal BP readings, family profile |
+| `janesmith` | jane.smith@email.com | Jane Smith (38F) | Diabetes + Hypertension, Stage 1 |
+| `bobwilson` | bob.wilson@email.com | Bob Wilson (62M) | Heart Disease, Stage 2 Hypertension |
+| `alicejohnson` | alice.johnson@email.com | Alice Johnson (54F) | Diabetes, improving BP control |
+| `mikebrown` | mike.brown@email.com | Mike Brown (28M) | Healthy young adult, normal readings |
+
+### Test Data Includes
+- **5 User Accounts** with authentication
+- **7 Family Profiles** covering various demographics
+- **90+ Blood Pressure Readings** across all classification ranges
+- **20+ Reminders** for medications and appointments
+
+## 🏗️ Technical Architecture
 
 ### Frontend Stack
 - **React 18** with TypeScript for type safety
 - **Vite** for fast development and optimized builds
-- **Tailwind CSS** with custom medical-themed design system
+- **Tailwind CSS** with custom medical-themed design
 - **Shadcn/UI** components built on Radix UI primitives
-- **TanStack Query** for server state management
-- **Wouter** for lightweight client-side routing
+- **TanStack Query** for efficient state management
 - **Chart.js** for interactive data visualization
-- **React Hook Form** with Zod validation
 
 ### Backend Stack
-- **Node.js** with Express.js framework
-- **TypeScript** with ES modules for full-stack type safety
+- **Express.js** with TypeScript for API development
 - **Drizzle ORM** for type-safe database operations
-- **PostgreSQL** with Neon Database (serverless)
-- **Express Sessions** with PostgreSQL session store
-- **RESTful API** design with structured error handling
+- **MySQL** with connection pooling for production
+- **Zod** for runtime validation and type checking
+- **Session-based** authentication and profile management
 
-### Data Storage
-- **Development**: In-memory storage for fast prototyping
-- **Production**: PostgreSQL with Drizzle ORM
-- **Session Management**: PostgreSQL-backed sessions
-- **Schema Validation**: Zod schemas for runtime type checking
+### Database Design
+- **MySQL** with optimized indexes and constraints
+- **Stored Procedures** for complex calculations
+- **Views** for simplified data access
+- **Triggers** for automated data management
+- **JSON Columns** for flexible medical condition storage
 
-## 📋 Prerequisites
+## 📚 Documentation
 
-- **Node.js** 18+ and npm
-- **PostgreSQL** database (for production)
-- Modern web browser with JavaScript enabled
+### Core Documentation
+- **[Technical Specification](docs/TECHNICAL_SPECIFICATION.md)** - Detailed system architecture
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete REST API reference
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Multi-platform deployment instructions
+- **[Medical Guidelines](docs/MEDICAL_GUIDELINES.md)** - ACC/AHA 2017 compliance details
+- **[User Guide](docs/USER_GUIDE.md)** - End-user documentation
 
-## 🚀 Quick Start
+### Database Documentation
+- **[Database README](database/README.md)** - MySQL setup and configuration
+- **[Schema File](database/schema.sql)** - Complete database structure
+- **[Test Data](database/test_data.sql)** - Comprehensive test dataset
 
-### Installation
+## 🩺 Medical Compliance
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd blood-pressure-app
-   ```
+### ACC/AHA 2017 Guidelines
+The application implements the latest American College of Cardiology and American Heart Association blood pressure guidelines:
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+| Classification | Systolic (mmHg) | Diastolic (mmHg) | Color Code |
+|---------------|----------------|------------------|------------|
+| Normal | < 120 | AND < 80 | 🟢 Green |
+| Elevated | 120-129 | AND < 80 | 🟡 Yellow |
+| Hypertension Stage 1 | 130-139 | OR 80-89 | 🟠 Orange |
+| Hypertension Stage 2 | ≥ 140 | OR ≥ 90 | 🔴 Red |
+| Hypertensive Crisis | > 180 | OR > 120 | ⚫ Dark Red |
 
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+### Calculated Clinical Metrics
+- **Pulse Pressure**: Systolic - Diastolic (Normal: 30-50 mmHg)
+- **Mean Arterial Pressure**: Diastolic + (Pulse Pressure ÷ 3) (Normal: 70-100 mmHg)
 
-4. **Open your browser:**
-   Navigate to `http://localhost:5000`
+## 🔧 Development
 
-### Development Mode
-
-The application runs in development mode with:
-- **Hot reload** for both frontend and backend
-- **In-memory storage** with pre-populated sample data
-- **Sample profiles**: John Doe (46), Dad (76, Diabetic), Mom (73)
-- **No database setup required** for development
-
-## 🗄️ Database Setup (Production)
-
-### PostgreSQL Configuration
-
-1. **Create a PostgreSQL database:**
-   ```sql
-   CREATE DATABASE blood_pressure_app;
-   ```
-
-2. **Set environment variables:**
-   ```bash
-   DATABASE_URL="postgresql://username:password@localhost:5432/blood_pressure_app"
-   ```
-
-3. **Run database migrations:**
-   ```bash
-   npm run db:migrate
-   ```
-
-### Database Schema
-
-The application uses three main tables:
-
-#### Profiles Table
-```sql
-- id (UUID, Primary Key)
-- name (Text, Required)
-- gender (Text: 'male' | 'female')
-- age (Integer)
-- medical_conditions (Text Array)
-- is_active (Boolean)
-- created_at (Timestamp)
+### Project Structure
 ```
-
-#### Blood Pressure Readings Table
-```sql
-- id (UUID, Primary Key)
-- profile_id (UUID, Foreign Key)
-- systolic (Integer, 70-250 mmHg)
-- diastolic (Integer, 40-150 mmHg)
-- pulse (Integer, 40-200 BPM)
-- reading_date (Timestamp)
-- classification (Text)
-- pulse_pressure (Integer, Calculated)
-- mean_arterial_pressure (Integer, Calculated)
-- created_at (Timestamp)
-```
-
-#### Reminders Table
-```sql
-- id (UUID, Primary Key)
-- profile_id (UUID, Foreign Key)
-- title (Text)
-- time (Text, HH:MM format)
-- is_repeating (Boolean)
-- days_of_week (Text Array)
-- is_active (Boolean)
-- created_at (Timestamp)
-```
-
-## 🏗️ Project Structure
-
-```
-├── client/                 # Frontend React application
+├── client/              # React frontend application
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   │   ├── ui/         # Shadcn/UI components
-│   │   │   ├── charts/     # Chart components
-│   │   │   └── *.tsx       # Feature components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── lib/            # Utility libraries
-│   │   ├── pages/          # Page components
-│   │   └── App.tsx         # Main application component
-│   └── index.html          # HTML entry point
-├── server/                 # Backend Express application
-│   ├── index.ts            # Server entry point
-│   ├── routes.ts           # API route definitions
-│   ├── storage.ts          # Data storage interface
-│   └── vite.ts             # Vite integration
-├── shared/                 # Shared TypeScript types
-│   └── schema.ts           # Database schemas and types
-└── docs/                   # Documentation
+│   │   ├── components/  # Reusable UI components
+│   │   ├── pages/       # Application pages
+│   │   ├── hooks/       # Custom React hooks
+│   │   └── lib/         # Utility functions
+├── server/              # Express backend server
+│   ├── routes.ts        # API route definitions
+│   ├── storage.ts       # Data storage implementations
+│   └── db.ts           # MySQL database connection
+├── shared/              # Shared TypeScript types
+├── database/            # MySQL schema and test data
+└── docs/               # Comprehensive documentation
 ```
-
-## 🔌 API Endpoints
-
-### Profiles
-- `GET /api/profiles` - Get all profiles
-- `GET /api/profiles/active` - Get active profile
-- `POST /api/profiles` - Create new profile
-- `POST /api/profiles/:id/activate` - Set active profile
-
-### Blood Pressure Readings
-- `GET /api/readings` - Get readings for active profile
-- `POST /api/readings` - Create new reading
-- `DELETE /api/readings/:id` - Delete reading
-
-### Statistics
-- `GET /api/statistics?days=30` - Get statistics for specified period
-
-### Reminders
-- `GET /api/reminders` - Get reminders for active profile
-- `POST /api/reminders` - Create new reminder
-
-## 🎨 Design System
-
-### Color Palette
-The application uses a medical-grade color system:
-
-- **Primary Blue**: `hsl(207, 90%, 54%)` - Medical professional theme
-- **Blood Pressure Classifications**:
-  - Normal: `hsl(142, 71%, 45%)` (Green)
-  - Elevated: `hsl(45, 93%, 47%)` (Yellow)
-  - Stage 1: `hsl(25, 95%, 53%)` (Orange)
-  - Stage 2: `hsl(0, 73%, 41%)` (Red)
-  - Crisis: `hsl(0, 84%, 35%)` (Dark Red)
-
-### Typography
-- **Font**: Inter (clean, medical-grade readability)
-- **Size Scale**: Responsive typography with mobile-first approach
-- **Weight**: Strategic use of font weights for hierarchy
-
-## 📱 Mobile-First Design
-
-The application is designed with mobile-first principles:
-- **Responsive Layout**: Optimized for mobile devices
-- **Touch-Friendly**: Large touch targets and intuitive gestures
-- **Progressive Enhancement**: Works on all screen sizes
-- **Accessibility**: ARIA compliance through Radix UI
-
-## 🧪 Development Workflow
 
 ### Available Scripts
-
 ```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run TypeScript compiler
-npm run type-check
-
-# Database operations
-npm run db:generate    # Generate migrations
-npm run db:migrate     # Run migrations
-npm run db:studio      # Open Drizzle Studio
+npm run dev          # Start development server
+npm run build        # Build production application
+npm start            # Start production server
+npm run db:generate  # Generate database migrations
+npm run db:migrate   # Run database migrations
+npm run db:studio    # Open database studio
 ```
 
-### Code Quality
-- **TypeScript**: Full type safety across frontend and backend
-- **ESLint**: Code linting with React and TypeScript rules
-- **Prettier**: Automatic code formatting
-- **Zod**: Runtime type validation for API requests
+### Environment Modes
+- **Development**: Uses in-memory storage with sample data
+- **Production**: Requires MySQL database connection
 
-## 🔒 Security Features
+## 🚀 Deployment Options
 
-### Data Validation
-- **Zod Schemas**: Runtime validation for all inputs
-- **Type Safety**: Compile-time type checking
-- **Input Sanitization**: Automatic sanitization of user inputs
+### Replit Deployment
+1. Set `DATABASE_URL` in Replit Secrets
+2. Click "Deploy" button
+3. Configure environment variables
 
-### Session Management
-- **Express Sessions**: Secure session handling
-- **PostgreSQL Store**: Session persistence in database
-- **Profile Isolation**: Data access control by profile
+### Vercel Deployment
+```bash
+npm install -g vercel
+vercel --prod
+```
 
-## 📊 Blood Pressure Classifications
+### Heroku Deployment
+```bash
+heroku create your-app-name
+heroku addons:create heroku-postgresql:hobby-dev
+git push heroku main
+```
 
-Following ACC/AHA 2017 Guidelines:
+### Docker Deployment
+```bash
+docker build -t blood-pressure-app .
+docker run -p 5000:5000 --env-file .env blood-pressure-app
+```
 
-| Category | Systolic (mmHg) | Diastolic (mmHg) |
-|----------|----------------|------------------|
-| Normal | < 120 | AND < 80 |
-| Elevated | 120-129 | AND < 80 |
-| Stage 1 Hypertension | 130-139 | OR 80-89 |
-| Stage 2 Hypertension | ≥ 140 | OR ≥ 90 |
-| Hypertensive Crisis | > 180 | OR > 120 |
+## 🔒 Security & Privacy
 
-## 📋 Usage Guide
+### Data Protection
+- **Profile Isolation**: Data access restricted by active profile
+- **Input Validation**: Comprehensive validation of all user inputs
+- **Session Security**: Secure session management with Express sessions
+- **SQL Injection Prevention**: Parameterized queries via Drizzle ORM
 
-### Adding Blood Pressure Readings
-1. Click "Add New Reading" button
-2. Enter systolic pressure (70-250 mmHg)
-3. Enter diastolic pressure (40-150 mmHg)
-4. Enter pulse rate (40-200 BPM)
-5. Set date and time
-6. Save reading
+### Medical Data Handling
+- **HIPAA Considerations**: Following healthcare data best practices
+- **Data Retention**: Configurable data retention policies
+- **Audit Trail**: Comprehensive logging of data access
+- **Export Control**: Secure PDF and CSV generation
 
-### Viewing Statistics
-1. Navigate to Statistics tab
-2. Select time period (30, 60, or 90 days)
-3. View average readings, ranges, and trends
-4. See classification distribution
+## 📊 Performance Features
 
-### Generating Reports
-1. Go to Statistics view
-2. Click "Export PDF" for medical report
-3. Click "Export CSV" for data analysis
-4. Reports include patient info and ACC/AHA compliance
+### Frontend Optimizations
+- **Code Splitting**: Lazy loading for optimal bundle sizes
+- **Caching Strategy**: TanStack Query for efficient data caching
+- **Responsive Design**: Mobile-first responsive interface
+- **Offline Support**: Service worker for offline functionality
 
-### Managing Profiles
-1. Click profile avatar in header
-2. Select from existing profiles
-3. Add new profiles with medical conditions
-4. Switch between family members
+### Backend Optimizations
+- **Connection Pooling**: MySQL connection pool for performance
+- **Database Indexing**: Optimized indexes for common queries
+- **Compression**: Gzip compression for API responses
+- **Caching Headers**: Browser caching for static assets
 
 ## 🤝 Contributing
 
-### Development Setup
-1. Fork the repository
-2. Create feature branch
-3. Make changes with tests
-4. Submit pull request
+### Development Guidelines
+1. Follow TypeScript strict mode
+2. Use existing component patterns
+3. Maintain medical accuracy
+4. Add comprehensive tests
+5. Update documentation
 
-### Code Style
-- Use TypeScript for all new code
-- Follow existing component patterns
-- Add proper error handling
-- Include accessibility features
+### Medical Accuracy
+- All calculations must follow ACC/AHA 2017 guidelines
+- Blood pressure ranges must be physiologically valid
+- Classifications must be medically accurate
+- Terminology must use standard medical language
 
-## 📄 License
+## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For support and questions:
-- Check existing issues in the repository
-- Create new issue for bugs or feature requests
-- Follow the issue template for better assistance
+### Technical Issues
+- Check the [User Guide](docs/USER_GUIDE.md) for common solutions
+- Review [API Documentation](docs/API_DOCUMENTATION.md) for integration help
+- Consult [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) for setup issues
 
-## 🗺️ Roadmap
-
-### Phase 2 Features
-- [ ] Mobile application (React Native)
-- [ ] Bluetooth device integration
-- [ ] Apple Health / Google Fit sync
-- [ ] Medication tracking
-- [ ] Doctor appointment scheduling
-- [ ] Email report sharing
-- [ ] Advanced analytics dashboard
-- [ ] Machine learning trend predictions
+### Medical Questions
+- This application provides data tracking, not medical diagnosis
+- Always consult healthcare providers for medical decisions
+- Seek immediate care for readings ≥180/120 mmHg
 
 ---
 
-**Built with ❤️ for better health monitoring**
+**Built with ❤️ for better cardiovascular health monitoring**
