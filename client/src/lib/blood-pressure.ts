@@ -1,0 +1,70 @@
+export interface BloodPressureClassification {
+  category: string;
+  color: string;
+  bgColor: string;
+  description: string;
+}
+
+export function classifyBloodPressure(systolic: number, diastolic: number): BloodPressureClassification {
+  if (systolic >= 180 || diastolic >= 120) {
+    return {
+      category: "Hypertensive Crisis",
+      color: "text-red-800",
+      bgColor: "bg-red-600",
+      description: "Seek immediate medical attention"
+    };
+  } else if (systolic >= 140 || diastolic >= 90) {
+    return {
+      category: "Hypertension Stage 2",
+      color: "text-red-700",
+      bgColor: "bg-red-500",
+      description: "High blood pressure"
+    };
+  } else if (systolic >= 130 || diastolic >= 80) {
+    return {
+      category: "Hypertension Stage 1",
+      color: "text-orange-700",
+      bgColor: "bg-orange-500",
+      description: "High blood pressure"
+    };
+  } else if (systolic >= 120 && diastolic < 80) {
+    return {
+      category: "Elevated",
+      color: "text-yellow-700",
+      bgColor: "bg-yellow-500",
+      description: "Elevated blood pressure"
+    };
+  } else {
+    return {
+      category: "Normal",
+      color: "text-green-700",
+      bgColor: "bg-green-500",
+      description: "Normal blood pressure"
+    };
+  }
+}
+
+export function getClassificationColor(classification: string): string {
+  switch (classification) {
+    case "Normal":
+      return "bg-green-500";
+    case "Elevated":
+      return "bg-yellow-500";
+    case "Hypertension Stage 1":
+      return "bg-orange-500";
+    case "Hypertension Stage 2":
+      return "bg-red-500";
+    case "Hypertensive Crisis":
+      return "bg-red-600";
+    default:
+      return "bg-gray-500";
+  }
+}
+
+export function calculatePulseStressure(systolic: number, diastolic: number): number {
+  return systolic - diastolic;
+}
+
+export function calculateMeanArterialPressure(systolic: number, diastolic: number): number {
+  return Math.round(diastolic + (systolic - diastolic) / 3);
+}
