@@ -351,7 +351,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Export MySQL storage for production, fallback to MemStorage for development
-export const storage = process.env.NODE_ENV === "production" && process.env.DATABASE_URL 
+// Export MySQL storage when database config is available, fallback to MemStorage for development
+export const storage = (process.env.DB_HOST || process.env.DB_USER || process.env.DATABASE_URL?.includes('mysql'))
   ? new MySQLStorage() 
   : new MemStorage();
