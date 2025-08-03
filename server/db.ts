@@ -21,6 +21,9 @@ export const db = drizzle(connection, { schema, mode: "default" });
 // Database connection test
 export async function testConnection() {
   try {
+    console.log(`🔄 Testing MySQL connection to ${connectionConfig.host}:${connectionConfig.port}...`);
+    console.log(`📋 Connection config: host=${connectionConfig.host}, user=${connectionConfig.user}, database=${connectionConfig.database}`);
+    
     const conn = await connection.getConnection();
     await conn.ping();
     conn.release();
@@ -28,6 +31,13 @@ export async function testConnection() {
     return true;
   } catch (error) {
     console.error("❌ MySQL database connection failed:", error);
+    if (error.code === 'ECONNREFUSED') {
+      console.error("   Make sure MySQL server is running on the specified port");
+    } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+      console.error("   Check username and password credentials");
+    } else if (error.code === 'ER_BAD_DB_ERROR') {
+      console.error("   Database does not exist - you may need to create it first");
+    }
     return false;
   }
 }

@@ -352,6 +352,51 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Since MySQL connection failed, use MemStorage for development until MySQL is available
-export const storage = new MemStorage();
-console.log('📦 Using storage: MemStorage (MySQL not available)');
+// Try MySQL connection with better error handling
+async function initializeStorage(): Promise<IStorage> {
+  // Always try MySQL first if credentials are provided
+  if (process.env.DB_HOST || process.env.DB_USER) {
+    try {
+      console.log('🔄 Attempting MySQL connection...');
+      const { testConnection } = await import('./db');
+      const connected = await testConnection();
+      
+      if (connected) {
+        console.log('✅ MySQL connected successfully, using MySQLStorage');
+        return new MySQLStorage();
+      } else {
+        console.warn('⚠️ MySQL connection test failed - falling back to MemStorage');
+        console.log('💡 To connect to local MySQL:');
+        console.log('   1. Ensure MySQL is running on your local machine');
+        console.log('   2. Create database "blood_pressure_app" if it doesn\'t exist');
+        console.log('   3. Import the schema from database/schema.sql');
+        console.log('   4. Restart the application');
+      }
+    } catch (error) {
+      console.warn('⚠️ MySQL connection failed:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+  
+  console.log('📦 Using MemStorage (data will not persist between restarts)');
+  return new MemStorage();
+}
+
+// Initialize storage and export
+let storageInstance: IStorage | null = null;
+
+initializeStorage().then(storage => {
+  storageInstance = storage;
+}).catch(error => {
+  console.error('Storage initialization error:', error);
+  storageInstance = new MemStorage();
+});
+
+export const storage = new Proxy({} as IStorage, {
+  get(target, prop) {
+    if (!storageInstance) {
+      throw new Error('Storage not yet initialized');
+    }
+    const value = (storageInstance as any)[prop];
+    return typeof value === 'function' ? value.bind(storageInstance) : value;
+  }
+});
