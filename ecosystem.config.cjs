@@ -19,8 +19,7 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         PORT: 5000,
-        HOST: '0.0.0.0',
-        args: 'start'
+        HOST: '0.0.0.0'
       },
       log_date_format: 'YYYY-MM-DD HH:mm Z',
       error_file: './logs/err.log',
