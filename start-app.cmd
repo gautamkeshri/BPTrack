@@ -1,8 +1,8 @@
 @echo off
 echo Starting Blood Pressure Monitoring Application...
 
-echo Checking if port 5000 is available...
-netstat -ano | findstr :5000
+echo Checking if port 6060 is available...
+netstat -ano | findstr :6060
 
 echo.
 echo Stopping any existing PM2 processes...
@@ -25,7 +25,7 @@ echo Checking application logs...
 pm2 logs blood-pressure-app --lines 5
 
 echo.
-echo Application should be running at: http://localhost:5000
+echo Application should be running at: http://localhost:6060
 echo.
 echo To view logs: pm2 logs blood-pressure-app
 echo To stop: pm2 stop blood-pressure-app

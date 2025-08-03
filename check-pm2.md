@@ -15,8 +15,8 @@ pm2 logs blood-pressure-app
 ```
 
 ### Access Your Application
-- **Frontend**: http://localhost:5000
-- **API**: http://localhost:5000/api/*
+- **Frontend**: http://localhost:6060
+- **API**: http://localhost:6060/api/*
 
 ### PM2 Management Commands
 ```cmd

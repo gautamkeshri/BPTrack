@@ -95,8 +95,8 @@ The application supports two modes:
 
 ## Application URLs
 
-- **Frontend**: http://localhost:5000
-- **API**: http://localhost:5000/api/*
+- **Frontend**: http://localhost:6060
+- **API**: http://localhost:6060/api/*
 
 ## Database Setup (Production Mode Only)
 
@@ -122,7 +122,7 @@ mysql -u root -p blood_pressure_app < database/test_data.sql
 NODE_ENV=production
 DATABASE_URL=mysql://username:password@localhost:3306/blood_pressure_app
 SESSION_SECRET=your-secure-secret-key
-PORT=5000
+PORT=6060
 ```
 
 ## PM2 Process Management
@@ -144,8 +144,8 @@ When using test data, all users have the same password:
 
 1. **Port already in use**:
 ```bash
-# Kill process on port 5000
-lsof -ti:5000 | xargs kill -9
+# Kill process on port 6060
+lsof -ti:6060 | xargs kill -9
 ```
 
 2. **PM2 not starting**:
