@@ -113,9 +113,12 @@ export class MySQLStorage implements IStorage {
 
     const newReading = {
       id,
-      ...reading,
+      profileId: reading.profileId,
+      systolic: reading.systolic,
+      diastolic: reading.diastolic,
+      pulse: reading.pulse,
       readingDate: new Date(reading.readingDate),
-      classification,
+      classification: classification.category,
       pulseStressure,
       meanArterialPressure,
       createdAt: new Date(),
@@ -127,7 +130,7 @@ export class MySQLStorage implements IStorage {
 
   async deleteReading(id: string): Promise<boolean> {
     const result = await db.delete(bloodPressureReadings).where(eq(bloodPressureReadings.id, id));
-    return result.changedRows > 0;
+    return (result as any).affectedRows > 0;
   }
 
   // Reminder methods
@@ -161,7 +164,7 @@ export class MySQLStorage implements IStorage {
 
   async deleteReminder(id: string): Promise<boolean> {
     const result = await db.delete(reminders).where(eq(reminders.id, id));
-    return result.changedRows > 0;
+    return (result as any).affectedRows > 0;
   }
 }
 

@@ -44,16 +44,12 @@ export const insertProfileSchema = createInsertSchema(profiles).pick({
   medicalConditions: true,
 });
 
-export const insertBloodPressureReadingSchema = createInsertSchema(bloodPressureReadings).pick({
-  profileId: true,
-  systolic: true,
-  diastolic: true,
-  pulse: true,
-  readingDate: true,
-}).extend({
+export const insertBloodPressureReadingSchema = z.object({
+  profileId: z.string().optional(),
   systolic: z.number().min(70).max(250),
   diastolic: z.number().min(40).max(150),
   pulse: z.number().min(40).max(200),
+  readingDate: z.coerce.date(),
 });
 
 export const insertReminderSchema = createInsertSchema(reminders).pick({
