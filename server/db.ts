@@ -29,7 +29,7 @@ export async function testConnection() {
     conn.release();
     console.log("✅ MySQL database connected successfully");
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ MySQL database connection failed:", error);
     if (error.code === 'ECONNREFUSED') {
       console.error("   Make sure MySQL server is running on the specified port");

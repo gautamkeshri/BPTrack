@@ -352,6 +352,40 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use MemStorage for development
-export const storage = new MemStorage();
-console.log('Using MemStorage for development');
+// Smart storage selection - use MySQL if available, fallback to MemStorage
+async function initializeStorage(): Promise<IStorage> {
+  // Check if MySQL credentials are provided and attempt connection
+  if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
+    try {
+      const { testConnection } = await import('./db');
+      const connected = await testConnection();
+      
+      if (connected) {
+        console.log('✅ Connected to MySQL database');
+        return new MySQLStorage();
+      }
+    } catch (error) {
+      console.warn('MySQL not available, using in-memory storage');
+    }
+  }
+  
+  console.log('📦 Using in-memory storage (data will not persist)');
+  return new MemStorage();
+}
+
+// Initialize storage asynchronously
+let storageInstance: IStorage = new MemStorage();
+
+initializeStorage().then(storage => {
+  storageInstance = storage;
+}).catch(() => {
+  storageInstance = new MemStorage();
+});
+
+// Export storage with proper proxy to handle async initialization
+export const storage = new Proxy({} as IStorage, {
+  get(target, prop) {
+    const value = (storageInstance as any)[prop];
+    return typeof value === 'function' ? value.bind(storageInstance) : value;
+  }
+});
