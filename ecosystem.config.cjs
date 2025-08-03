@@ -1,12 +1,13 @@
 // PM2 ecosystem configuration for Blood Pressure Monitoring Application
-// CommonJS format for PM2 compatibility with ES modules project
+// Fixed to handle TypeScript execution properly
 
 module.exports = {
   apps: [
     {
       name: 'blood-pressure-app',
-      script: 'npm',
-      args: 'run dev',
+      script: 'node_modules/.bin/tsx',
+      args: 'server/index.ts',
+      interpreter: 'node',
       instances: 1,
       autorestart: true,
       watch: false,
