@@ -23,7 +23,7 @@ export function generateBloodPressureReport(
   doc.text(`Gender: ${profile.gender}`, 20, 55);
   doc.text(`Age: ${profile.age}`, 20, 65);
   
-  const dateRange = `Date range: ${format(new Date(statistics.period.startDate), 'MMM d, yyyy')} - ${format(new Date(statistics.period.endDate), 'MMM d, yyyy')}`;
+  const dateRange = `Date range: ${format(new Date(statistics.period.startDate), 'dd-MM-yyyy')} - ${format(new Date(statistics.period.endDate), 'dd-MM-yyyy')}`;
   doc.text(dateRange, pageWidth - 20, 45, { align: 'right' });
   doc.text(`Total readings: ${statistics.totalReadings}`, pageWidth - 20, 55, { align: 'right' });
 
@@ -74,7 +74,7 @@ export function generateBloodPressureReport(
     }
 
     const date = new Date(reading.readingDate);
-    doc.text(format(date, 'MMM dd'), 20, yPos);
+    doc.text(format(date, 'dd-MM-yyyy'), 20, yPos);
     doc.text(format(date, 'HH:mm'), 50, yPos);
     doc.text(reading.systolic.toString(), 80, yPos);
     doc.text(reading.diastolic.toString(), 110, yPos);
@@ -97,7 +97,7 @@ export function generateCSVReport(readings: BloodPressureReading[]): string {
     ...readings.map(reading => {
       const date = new Date(reading.readingDate);
       return [
-        format(date, 'yyyy-MM-dd'),
+        format(date, 'dd-MM-yyyy'),
         format(date, 'HH:mm'),
         reading.systolic,
         reading.diastolic,
@@ -117,6 +117,6 @@ export function downloadCSVReport(readings: BloodPressureReading[]): void {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `blood-pressure-readings-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  link.download = `blood-pressure-readings-${format(new Date(), 'dd-MM-yyyy')}.csv`;
   link.click();
 }

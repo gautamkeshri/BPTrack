@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { BloodPressureReading, Profile } from "@shared/schema";
 import { generateCSVReport } from "@/lib/pdf-generator";
+import { format } from "date-fns";
 
 interface BurgerMenuProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `blood-pressure-data-${activeProfile.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `blood-pressure-data-${activeProfile.name.replace(/\s+/g, '-')}-${format(new Date(), 'dd-MM-yyyy')}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

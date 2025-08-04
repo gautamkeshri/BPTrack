@@ -100,7 +100,7 @@ export default function Home() {
     } else if (d.toDateString() === yesterday.toDateString()) {
       return `Yesterday, ${format(d, 'h:mm a')}`;
     } else {
-      return format(d, 'MMM dd, h:mm a');
+      return format(d, 'dd-MM-yyyy, h:mm a');
     }
   };
 
@@ -218,12 +218,12 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           {/* Date Column */}
-                          <div className="text-center min-w-[60px]">
+                          <div className="text-center min-w-[70px]">
                             <div className="text-xs font-medium text-slate-500 uppercase">
                               {format(new Date(reading.readingDate), 'EEE')}
                             </div>
                             <div className="text-sm font-semibold text-slate-900">
-                              {format(new Date(reading.readingDate), 'MMM dd')}
+                              {format(new Date(reading.readingDate), 'dd-MM')}
                             </div>
                             <div className="text-xs text-slate-500">
                               {format(new Date(reading.readingDate), 'yyyy')}
