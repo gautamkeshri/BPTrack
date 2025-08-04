@@ -20,16 +20,18 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import ReadingForm from "@/components/reading-form";
 import ProfileSelector from "@/components/profile-selector";
+import BurgerMenu from "@/components/burger-menu";
 import DistributionChart from "@/components/charts/distribution-chart";
 import TrendChart from "@/components/charts/trend-chart";
 import { BloodPressureReading, Profile } from "@shared/schema";
 import { getClassificationColor, parseClassification } from "@/lib/blood-pressure";
-import { generateBloodPressureReport, generateCSVReport } from "@/lib/pdf-generator";
+import { generateBloodPressureReport, downloadCSVReport } from "@/lib/pdf-generator";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'readings' | 'statistics' | 'charts'>('readings');
   const [showReadingForm, setShowReadingForm] = useState(false);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [showBurgerMenu, setShowBurgerMenu] = useState(false);
   const [editingReading, setEditingReading] = useState<BloodPressureReading | null>(null);
   const [dateFilter, setDateFilter] = useState("30");
   const [timeFilter, setTimeFilter] = useState("any");
@@ -83,7 +85,7 @@ export default function Home() {
 
   const handleExportCSV = () => {
     if (readings.length > 0) {
-      generateCSVReport(readings);
+      downloadCSVReport(readings);
     }
   };
 
@@ -111,7 +113,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             className="text-slate-600 hover:text-slate-900"
-            onClick={() => setShowProfileSelector(true)}
+            onClick={() => setShowBurgerMenu(true)}
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -129,13 +131,13 @@ export default function Home() {
             variant="ghost"
             size="sm"
             className="text-slate-600 hover:text-slate-900"
+            onClick={() => setShowProfileSelector(true)}
           >
             <MoreVertical className="h-5 w-5" />
           </Button>
           {activeProfile && (
             <div 
-              className={`w-10 h-10 bg-gradient-to-br ${getAvatarColor(activeProfile.name)} rounded-full flex items-center justify-center text-white font-semibold cursor-pointer`}
-              onClick={() => setShowProfileSelector(true)}
+              className={`w-10 h-10 bg-gradient-to-br ${getAvatarColor(activeProfile.name)} rounded-full flex items-center justify-center text-white font-semibold`}
             >
               {getInitials(activeProfile.name)}
             </div>
@@ -620,6 +622,10 @@ export default function Home() {
       <ProfileSelector
         isOpen={showProfileSelector}
         onClose={() => setShowProfileSelector(false)}
+      />
+      <BurgerMenu
+        isOpen={showBurgerMenu}
+        onClose={() => setShowBurgerMenu(false)}
       />
     </div>
   );

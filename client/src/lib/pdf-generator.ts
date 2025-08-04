@@ -90,7 +90,7 @@ export function generateBloodPressureReport(
   doc.save(`blood-pressure-report-${profile.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 }
 
-export function generateCSVReport(readings: BloodPressureReading[]): void {
+export function generateCSVReport(readings: BloodPressureReading[]): string {
   const headers = ['Date', 'Time', 'Systolic (mmHg)', 'Diastolic (mmHg)', 'Pulse (BPM)', 'Classification', 'Pulse Pressure', 'MAP'];
   const csvContent = [
     headers.join(','),
@@ -109,6 +109,11 @@ export function generateCSVReport(readings: BloodPressureReading[]): void {
     })
   ].join('\n');
 
+  return csvContent;
+}
+
+export function downloadCSVReport(readings: BloodPressureReading[]): void {
+  const csvContent = generateCSVReport(readings);
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
