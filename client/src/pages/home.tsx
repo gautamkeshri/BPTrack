@@ -169,74 +169,112 @@ export default function Home() {
               </Card>
             )}
 
-            {/* Add New Reading Button */}
-            <Button
-              onClick={() => setShowReadingForm(true)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-6 flex items-center justify-center space-x-2 font-medium"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Add New Reading</span>
-            </Button>
+            {/* Add New Reading Button or No Profile Message */}
+            {activeProfile ? (
+              <Button
+                onClick={() => setShowReadingForm(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-6 flex items-center justify-center space-x-2 font-medium"
+              >
+                <Plus className="h-5 w-5" />
+                <span>Add New Reading</span>
+              </Button>
+            ) : (
+              <Card className="p-6 text-center bg-slate-50 border-2 border-dashed border-slate-300">
+                <div className="text-slate-600 mb-3">
+                  <div className="text-lg font-semibold">No Profile Selected</div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Create or select a profile to start tracking blood pressure readings
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setShowProfileSelector(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Profile
+                </Button>
+              </Card>
+            )}
 
             {/* Readings List */}
-            <div className="space-y-3">
-              {isLoadingReadings ? (
-                <div className="text-center py-8">
-                  <p className="text-slate-500">Loading readings...</p>
-                </div>
-              ) : readings.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-slate-500">No readings recorded yet</p>
-                  <p className="text-sm text-slate-400 mt-1">Add your first reading to get started</p>
-                </div>
-              ) : (
-                readings.map((reading) => (
-                  <Card key={reading.id} className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        {/* Date Column */}
-                        <div className="text-center min-w-[60px]">
-                          <div className="text-xs font-medium text-slate-500 uppercase">
-                            {format(new Date(reading.readingDate), 'EEE')}
+            {activeProfile && (
+              <div className="space-y-3">
+                {isLoadingReadings ? (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500">Loading readings...</p>
+                  </div>
+                ) : readings.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500">No readings recorded yet</p>
+                    <p className="text-sm text-slate-400 mt-1">Add your first reading to get started</p>
+                  </div>
+                ) : (
+                  readings.map((reading) => (
+                    <Card key={reading.id} className="p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          {/* Date Column */}
+                          <div className="text-center min-w-[60px]">
+                            <div className="text-xs font-medium text-slate-500 uppercase">
+                              {format(new Date(reading.readingDate), 'EEE')}
+                            </div>
+                            <div className="text-sm font-semibold text-slate-900">
+                              {format(new Date(reading.readingDate), 'MMM dd')}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {format(new Date(reading.readingDate), 'yyyy')}
+                            </div>
+                            <div className="text-xs text-slate-400 mt-1">
+                              {format(new Date(reading.readingDate), 'h:mm a')}
+                            </div>
                           </div>
-                          <div className="text-sm font-semibold text-slate-900">
-                            {format(new Date(reading.readingDate), 'MMM dd')}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {format(new Date(reading.readingDate), 'yyyy')}
-                          </div>
-                          <div className="text-xs text-slate-400 mt-1">
-                            {format(new Date(reading.readingDate), 'h:mm a')}
+                          {/* Status Indicator */}
+                          <div className={`w-1 h-12 ${getClassificationColor(parseClassification(reading.classification))} rounded-full`}></div>
+                          {/* Reading Values */}
+                          <div className="flex-1">
+                            <div className="text-xl font-bold text-slate-900">
+                              {reading.systolic}/{reading.diastolic} <span className="text-sm font-normal text-slate-500">mmHg</span>
+                            </div>
+                            <div className="text-sm text-slate-500">{parseClassification(reading.classification)}</div>
                           </div>
                         </div>
-                        {/* Status Indicator */}
-                        <div className={`w-1 h-12 ${getClassificationColor(parseClassification(reading.classification))} rounded-full`}></div>
-                        {/* Reading Values */}
-                        <div className="flex-1">
-                          <div className="text-xl font-bold text-slate-900">
-                            {reading.systolic}/{reading.diastolic} <span className="text-sm font-normal text-slate-500">mmHg</span>
-                          </div>
-                          <div className="text-sm text-slate-500">{parseClassification(reading.classification)}</div>
+                        {/* Pulse */}
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-slate-900">{reading.pulse}</div>
+                          <div className="text-xs text-slate-500">BPM</div>
                         </div>
                       </div>
-                      {/* Pulse */}
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-slate-900">{reading.pulse}</div>
-                        <div className="text-xs text-slate-500">BPM</div>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {/* Statistics View */}
         {activeView === 'statistics' && (
           <div className="p-4 space-y-6">
-            {/* Filter Controls */}
-            <div className="flex space-x-3">
+            {!activeProfile ? (
+              <Card className="p-6 text-center bg-slate-50 border-2 border-dashed border-slate-300">
+                <div className="text-slate-600 mb-3">
+                  <div className="text-lg font-semibold">No Profile Selected</div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Create or select a profile to view statistics
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setShowProfileSelector(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Profile
+                </Button>
+              </Card>
+            ) : (
+              <>
+                {/* Filter Controls */}
+                <div className="flex space-x-3">
               <Select value={dateFilter} onValueChange={setDateFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue />
@@ -259,10 +297,10 @@ export default function Home() {
               </Select>
             </div>
 
-            {statistics && (
-              <>
-                {/* Current Average */}
-                <Card className="p-6">
+                {statistics && (
+                  <>
+                    {/* Current Average */}
+                    <Card className="p-6">
                   <h3 className="text-sm font-medium text-slate-500 mb-2">
                     Average blood pressure ({dateFilter} days)
                   </h3>
@@ -383,6 +421,8 @@ export default function Home() {
                     Export CSV
                   </Button>
                 </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -391,13 +431,31 @@ export default function Home() {
         {/* Charts View */}
         {activeView === 'charts' && (
           <div className="p-4 space-y-6">
-            {/* Chart Type Tabs */}
-            <Tabs value={chartType} onValueChange={(value) => setChartType(value as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="distribution1">DISTRIBUTION I</TabsTrigger>
-                <TabsTrigger value="distribution2">DISTRIBUTION II</TabsTrigger>
-                <TabsTrigger value="trend">TREND</TabsTrigger>
-              </TabsList>
+            {!activeProfile ? (
+              <Card className="p-6 text-center bg-slate-50 border-2 border-dashed border-slate-300">
+                <div className="text-slate-600 mb-3">
+                  <div className="text-lg font-semibold">No Profile Selected</div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Create or select a profile to view charts
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setShowProfileSelector(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Profile
+                </Button>
+              </Card>
+            ) : (
+              <>
+                {/* Chart Type Tabs */}
+                <Tabs value={chartType} onValueChange={(value) => setChartType(value as any)}>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="distribution1">DISTRIBUTION I</TabsTrigger>
+                    <TabsTrigger value="distribution2">DISTRIBUTION II</TabsTrigger>
+                    <TabsTrigger value="trend">TREND</TabsTrigger>
+                  </TabsList>
 
               {/* Filter Controls */}
               <div className="flex space-x-3">
@@ -483,6 +541,8 @@ export default function Home() {
                 </Card>
               </TabsContent>
             </Tabs>
+              </>
+            )}
           </div>
         )}
       </main>
@@ -524,12 +584,14 @@ export default function Home() {
       </nav>
 
       {/* Floating Action Button */}
-      <Button
-        onClick={() => setShowReadingForm(true)}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      {activeProfile && (
+        <Button
+          onClick={() => setShowReadingForm(true)}
+          className="fixed bottom-20 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      )}
 
       {/* Modals */}
       <ReadingForm

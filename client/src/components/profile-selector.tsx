@@ -241,7 +241,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
 
       const csvContent = [
         ...profileHeader,
-        ...csvRows.map(row => row.join(','))
+        ...csvRows.map((row: any[]) => row.join(','))
       ].join('\n');
 
       // Create and download CSV file
