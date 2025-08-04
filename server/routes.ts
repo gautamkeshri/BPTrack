@@ -139,6 +139,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/readings/:id", async (req, res) => {
+    try {
+      const readingId = req.params.id;
+      const partialSchema = insertBloodPressureReadingSchema.omit({ profileId: true }).partial();
+      const validatedData = partialSchema.parse(req.body);
+      
+      const updatedReading = await storage.updateReading(readingId, validatedData);
+      if (!updatedReading) {
+        return res.status(404).json({ message: "Reading not found" });
+      }
+      
+      res.json(updatedReading);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid reading data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update reading" });
+    }
+  });
+
   app.delete("/api/readings/:id", async (req, res) => {
     try {
       const success = await storage.deleteReading(req.params.id);

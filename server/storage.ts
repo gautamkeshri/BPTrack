@@ -18,6 +18,7 @@ export interface IStorage {
   getReadings(profileId: string): Promise<BloodPressureReading[]>;
   getReadingsByDateRange(profileId: string, startDate: Date, endDate: Date): Promise<BloodPressureReading[]>;
   createReading(reading: InsertBloodPressureReading): Promise<BloodPressureReading>;
+  updateReading(id: string, updates: Partial<BloodPressureReading>): Promise<BloodPressureReading | undefined>;
   deleteReading(id: string): Promise<boolean>;
 
   // Reminder methods
@@ -150,6 +151,37 @@ export class MySQLStorage implements IStorage {
 
     await db.insert(bloodPressureReadings).values([newReading]);
     return newReading as BloodPressureReading;
+  }
+
+  async updateReading(id: string, updates: Partial<BloodPressureReading>): Promise<BloodPressureReading | undefined> {
+    // Recalculate derived values if systolic or diastolic changed
+    const updateData: any = { ...updates };
+    
+    if (updates.systolic || updates.diastolic) {
+      // Get the current reading to get missing values
+      const currentReading = await db.select().from(bloodPressureReadings).where(eq(bloodPressureReadings.id, id));
+      if (currentReading.length === 0) return undefined;
+      
+      const reading = currentReading[0];
+      const systolic = updates.systolic ?? reading.systolic;
+      const diastolic = updates.diastolic ?? reading.diastolic;
+      
+      const classificationResult = classifyBloodPressure(systolic, diastolic);
+      const pulseStressure = calculatePulseStressure(systolic, diastolic);
+      const meanArterialPressure = calculateMeanArterialPressure(systolic, diastolic);
+      
+      updateData.classification = classificationResult.category;
+      updateData.pulseStressure = pulseStressure;
+      updateData.meanArterialPressure = meanArterialPressure;
+    }
+    
+    if (updates.readingDate) {
+      updateData.readingDate = new Date(updates.readingDate);
+    }
+    
+    await db.update(bloodPressureReadings).set(updateData).where(eq(bloodPressureReadings.id, id));
+    const result = await db.select().from(bloodPressureReadings).where(eq(bloodPressureReadings.id, id));
+    return result[0];
   }
 
   async deleteReading(id: string): Promise<boolean> {

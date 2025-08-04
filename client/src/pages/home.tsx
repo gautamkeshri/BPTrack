@@ -9,7 +9,8 @@ import {
   Download,
   Menu,
   MoreVertical,
-  Bell
+  Bell,
+  Edit3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,6 +30,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState<'readings' | 'statistics' | 'charts'>('readings');
   const [showReadingForm, setShowReadingForm] = useState(false);
   const [showProfileSelector, setShowProfileSelector] = useState(false);
+  const [editingReading, setEditingReading] = useState<BloodPressureReading | null>(null);
   const [dateFilter, setDateFilter] = useState("30");
   const [timeFilter, setTimeFilter] = useState("any");
   const [chartType, setChartType] = useState<'distribution1' | 'distribution2' | 'trend'>('distribution1');
@@ -238,10 +240,23 @@ export default function Home() {
                             <div className="text-sm text-slate-500">{parseClassification(reading.classification)}</div>
                           </div>
                         </div>
-                        {/* Pulse */}
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-slate-900">{reading.pulse}</div>
-                          <div className="text-xs text-slate-500">BPM</div>
+                        {/* Pulse and Edit Button */}
+                        <div className="flex items-center space-x-3">
+                          <div className="text-right">
+                            <div className="text-lg font-semibold text-slate-900">{reading.pulse}</div>
+                            <div className="text-xs text-slate-500">BPM</div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-slate-400 hover:text-slate-600"
+                            onClick={() => {
+                              setEditingReading(reading);
+                              setShowReadingForm(true);
+                            }}
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -596,7 +611,11 @@ export default function Home() {
       {/* Modals */}
       <ReadingForm
         isOpen={showReadingForm}
-        onClose={() => setShowReadingForm(false)}
+        onClose={() => {
+          setShowReadingForm(false);
+          setEditingReading(null);
+        }}
+        editingReading={editingReading}
       />
       <ProfileSelector
         isOpen={showProfileSelector}
