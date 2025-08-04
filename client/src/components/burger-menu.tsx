@@ -159,11 +159,8 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
       <Dialog open={isOpen && !showSettings} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
+            <DialogTitle>
               Menu
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
             </DialogTitle>
           </DialogHeader>
           
@@ -177,14 +174,21 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
               Export Data
             </Button>
             
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={handleImportData}
-            >
-              <FileUp className="h-4 w-4 mr-2" />
-              Import Data
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={handleImportData}
+              >
+                <FileUp className="h-4 w-4 mr-2" />
+                Import Data
+              </Button>
+              <div className="px-4 py-2 bg-slate-50 rounded text-xs text-slate-600">
+                <div className="font-medium mb-1">CSV Format:</div>
+                <div className="font-mono text-xs">Date,Time,Systolic,Diastolic,Pulse</div>
+                <div className="font-mono text-xs">01-08-2025,09:30,120,80,72</div>
+              </div>
+            </div>
             
             <Separator />
             

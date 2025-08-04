@@ -15,6 +15,8 @@ const readingSchema = z.object({
   systolic: z.number().min(70, "Systolic must be at least 70").max(250, "Systolic must be less than 250"),
   diastolic: z.number().min(40, "Diastolic must be at least 40").max(150, "Diastolic must be less than 150"),
   pulse: z.number().min(40, "Pulse must be at least 40").max(200, "Pulse must be less than 200"),
+  weight: z.number().min(20, "Weight must be at least 20kg").max(300, "Weight must be less than 300kg").optional().or(z.literal(0)),
+  notes: z.string().optional(),
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
 });
@@ -37,12 +39,16 @@ export default function ReadingForm({ isOpen, onClose, editingReading }: Reading
       systolic: editingReading.systolic,
       diastolic: editingReading.diastolic,
       pulse: editingReading.pulse,
+      weight: editingReading.weight || 0,
+      notes: editingReading.notes || "",
       date: new Date(editingReading.readingDate).toISOString().split('T')[0],
       time: new Date(editingReading.readingDate).toTimeString().slice(0, 5),
     } : {
       systolic: 120,
       diastolic: 80,
       pulse: 72,
+      weight: 0,
+      notes: "",
       date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().slice(0, 5),
     },
@@ -55,6 +61,8 @@ export default function ReadingForm({ isOpen, onClose, editingReading }: Reading
         systolic: data.systolic,
         diastolic: data.diastolic,
         pulse: data.pulse,
+        weight: data.weight && data.weight > 0 ? data.weight : null,
+        notes: data.notes?.trim() || null,
         readingDate: readingDate.toISOString(),
       };
       
@@ -173,21 +181,56 @@ export default function ReadingForm({ isOpen, onClose, editingReading }: Reading
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="pulse" className="text-sm font-medium text-slate-700">
+                Pulse (BPM)
+              </Label>
+              <Input
+                id="pulse"
+                type="number"
+                min={40}
+                max={200}
+                {...form.register("pulse", { valueAsNumber: true })}
+                className="mt-1 text-lg"
+                placeholder="72"
+              />
+              {form.formState.errors.pulse && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.pulse.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="weight" className="text-sm font-medium text-slate-700">
+                Weight (kg) <span className="text-slate-400">(optional)</span>
+              </Label>
+              <Input
+                id="weight"
+                type="number"
+                min={20}
+                max={300}
+                {...form.register("weight", { valueAsNumber: true })}
+                className="mt-1 text-lg"
+                placeholder="70"
+              />
+              {form.formState.errors.weight && (
+                <p className="text-sm text-red-600 mt-1">{form.formState.errors.weight.message}</p>
+              )}
+            </div>
+          </div>
+
           <div>
-            <Label htmlFor="pulse" className="text-sm font-medium text-slate-700">
-              Pulse (BPM)
+            <Label htmlFor="notes" className="text-sm font-medium text-slate-700">
+              Notes <span className="text-slate-400">(optional)</span>
             </Label>
             <Input
-              id="pulse"
-              type="number"
-              min={40}
-              max={200}
-              {...form.register("pulse", { valueAsNumber: true })}
-              className="mt-1 text-lg"
-              placeholder="72"
+              id="notes"
+              type="text"
+              {...form.register("notes")}
+              className="mt-1"
+              placeholder="Any additional notes..."
             />
-            {form.formState.errors.pulse && (
-              <p className="text-sm text-red-600 mt-1">{form.formState.errors.pulse.message}</p>
+            {form.formState.errors.notes && (
+              <p className="text-sm text-red-600 mt-1">{form.formState.errors.notes.message}</p>
             )}
           </div>
 

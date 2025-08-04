@@ -142,6 +142,8 @@ export class MySQLStorage implements IStorage {
       systolic: reading.systolic,
       diastolic: reading.diastolic,
       pulse: reading.pulse,
+      weight: reading.weight || null,
+      notes: reading.notes || null,
       readingDate: new Date(reading.readingDate),
       classification: classificationResult.category, // Store only the category string
       pulseStressure,
@@ -366,9 +368,14 @@ export class MemStorage implements IStorage {
     const classification = this.classifyBloodPressure(insertReading.systolic, insertReading.diastolic);
     
     const reading: BloodPressureReading = {
-      ...insertReading,
       id,
-      profileId: insertReading.profileId || '', // Ensure profileId is never undefined
+      profileId: insertReading.profileId || '',
+      systolic: insertReading.systolic,
+      diastolic: insertReading.diastolic,
+      pulse: insertReading.pulse,
+      weight: insertReading.weight || null,
+      notes: insertReading.notes || null,
+      readingDate: new Date(insertReading.readingDate),
       classification,
       pulseStressure,
       meanArterialPressure,
@@ -377,6 +384,31 @@ export class MemStorage implements IStorage {
     
     this.readings.set(id, reading);
     return reading;
+  }
+
+  async updateReading(id: string, updates: Partial<BloodPressureReading>): Promise<BloodPressureReading | undefined> {
+    const reading = this.readings.get(id);
+    if (!reading) return undefined;
+
+    // Update the reading with new values
+    const updatedReading = { ...reading, ...updates };
+
+    // Recalculate derived values if systolic or diastolic changed
+    if (updates.systolic !== undefined || updates.diastolic !== undefined) {
+      const systolic = updates.systolic ?? reading.systolic;
+      const diastolic = updates.diastolic ?? reading.diastolic;
+      
+      updatedReading.pulseStressure = systolic - diastolic;
+      updatedReading.meanArterialPressure = Math.round(diastolic + (updatedReading.pulseStressure / 3));
+      updatedReading.classification = this.classifyBloodPressure(systolic, diastolic);
+    }
+
+    if (updates.readingDate) {
+      updatedReading.readingDate = new Date(updates.readingDate);
+    }
+
+    this.readings.set(id, updatedReading);
+    return updatedReading;
   }
 
   async deleteReading(id: string): Promise<boolean> {

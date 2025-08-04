@@ -173,16 +173,8 @@ export default function Home() {
               </Card>
             )}
 
-            {/* Add New Reading Button or No Profile Message */}
-            {activeProfile ? (
-              <Button
-                onClick={() => setShowReadingForm(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-4 px-6 flex items-center justify-center space-x-2 font-medium"
-              >
-                <Plus className="h-5 w-5" />
-                <span>Add New Reading</span>
-              </Button>
-            ) : (
+            {/* No Profile Message */}
+            {!activeProfile && (
               <Card className="p-6 text-center bg-slate-50 border-2 border-dashed border-slate-300">
                 <div className="text-slate-600 mb-3">
                   <div className="text-lg font-semibold">No Profile Selected</div>
@@ -240,6 +232,12 @@ export default function Home() {
                               {reading.systolic}/{reading.diastolic} <span className="text-sm font-normal text-slate-500">mmHg</span>
                             </div>
                             <div className="text-sm text-slate-500">{parseClassification(reading.classification)}</div>
+                            {reading.weight && (
+                              <div className="text-xs text-slate-400 mt-1">Weight: {reading.weight}kg</div>
+                            )}
+                            {reading.notes && (
+                              <div className="text-xs text-slate-400 mt-1 italic">"{reading.notes}"</div>
+                            )}
                           </div>
                         </div>
                         {/* Pulse and Edit Button */}

@@ -19,6 +19,8 @@ export const bloodPressureReadings = pgTable("blood_pressure_readings", {
   systolic: integer("systolic").notNull(),
   diastolic: integer("diastolic").notNull(),
   pulse: integer("pulse").notNull(),
+  weight: integer("weight"), // in kg
+  notes: text("notes"),
   readingDate: timestamp("reading_date").notNull(),
   classification: text("classification").notNull(),
   pulseStressure: integer("pulse_pressure").notNull(),
@@ -49,6 +51,8 @@ export const insertBloodPressureReadingSchema = z.object({
   systolic: z.number().min(70).max(250),
   diastolic: z.number().min(40).max(150),
   pulse: z.number().min(40).max(200),
+  weight: z.number().min(20).max(300).optional(),
+  notes: z.string().optional(),
   readingDate: z.coerce.date(),
 });
 

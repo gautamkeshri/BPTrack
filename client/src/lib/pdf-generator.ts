@@ -46,6 +46,18 @@ export function generateBloodPressureReport(
   yPos += 10;
   doc.text(`Diastolic Range: ${statistics.ranges.diastolic.min} - ${statistics.ranges.diastolic.max} mmHg`, 20, yPos);
 
+  // Add Blood Pressure Trend Chart
+  yPos += 25;
+  if (readings.length > 1) {
+    doc.setFont('helvetica', 'bold');
+    doc.text('Blood Pressure Trend', 20, yPos);
+    yPos += 15;
+    
+    // Generate simple chart
+    generateSimpleChart(doc, readings, 20, yPos, pageWidth - 40, 80);
+    yPos += 90;
+  }
+
   // Readings table
   yPos += 25;
   doc.setFont('helvetica', 'bold');
@@ -88,6 +100,79 @@ export function generateBloodPressureReport(
 
   // Save the PDF
   doc.save(`blood-pressure-report-${profile.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+}
+
+function generateSimpleChart(doc: jsPDF, readings: BloodPressureReading[], x: number, y: number, width: number, height: number): void {
+  // Sort readings by date
+  const sortedReadings = [...readings].sort((a, b) => new Date(a.readingDate).getTime() - new Date(b.readingDate).getTime());
+  
+  // Take last 10 readings for the chart
+  const chartReadings = sortedReadings.slice(-10);
+  
+  if (chartReadings.length === 0) return;
+
+  // Find min/max values for scaling
+  const systolicValues = chartReadings.map(r => r.systolic);
+  const diastolicValues = chartReadings.map(r => r.diastolic);
+  const allValues = [...systolicValues, ...diastolicValues];
+  const minValue = Math.max(Math.min(...allValues) - 10, 0);
+  const maxValue = Math.max(...allValues) + 10;
+
+  // Draw chart border
+  doc.rect(x, y, width, height);
+
+  // Draw horizontal grid lines and labels
+  const gridLines = 4;
+  for (let i = 0; i <= gridLines; i++) {
+    const gridY = y + (height * i / gridLines);
+    const value = Math.round(maxValue - ((maxValue - minValue) * i / gridLines));
+    
+    // Grid line
+    doc.setDrawColor(200, 200, 200);
+    doc.line(x, gridY, x + width, gridY);
+    
+    // Value label
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text(value.toString(), x - 15, gridY + 2);
+  }
+
+  // Plot systolic values (red line)
+  doc.setDrawColor(220, 53, 69); // Red
+  doc.setLineWidth(2);
+  for (let i = 0; i < chartReadings.length - 1; i++) {
+    const x1 = x + (width * i / (chartReadings.length - 1));
+    const y1 = y + height - (height * (chartReadings[i].systolic - minValue) / (maxValue - minValue));
+    const x2 = x + (width * (i + 1) / (chartReadings.length - 1));
+    const y2 = y + height - (height * (chartReadings[i + 1].systolic - minValue) / (maxValue - minValue));
+    doc.line(x1, y1, x2, y2);
+  }
+
+  // Plot diastolic values (blue line)  
+  doc.setDrawColor(13, 110, 253); // Blue
+  for (let i = 0; i < chartReadings.length - 1; i++) {
+    const x1 = x + (width * i / (chartReadings.length - 1));
+    const y1 = y + height - (height * (chartReadings[i].diastolic - minValue) / (maxValue - minValue));
+    const x2 = x + (width * (i + 1) / (chartReadings.length - 1));
+    const y2 = y + height - (height * (chartReadings[i + 1].diastolic - minValue) / (maxValue - minValue));
+    doc.line(x1, y1, x2, y2);
+  }
+
+  // Add legend
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.setDrawColor(220, 53, 69);
+  doc.line(x + width - 80, y - 10, x + width - 65, y - 10);
+  doc.text('Systolic', x + width - 60, y - 6);
+  
+  doc.setDrawColor(13, 110, 253);
+  doc.line(x + width - 80, y - 20, x + width - 65, y - 20);
+  doc.text('Diastolic', x + width - 60, y - 16);
+  
+  // Reset colors
+  doc.setDrawColor(0, 0, 0);
+  doc.setTextColor(0, 0, 0);
+  doc.setLineWidth(0.2);
 }
 
 export function generateCSVReport(readings: BloodPressureReading[]): string {
