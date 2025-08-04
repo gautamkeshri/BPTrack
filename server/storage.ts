@@ -11,6 +11,7 @@ export interface IStorage {
   getActiveProfile(): Promise<Profile | undefined>;
   createProfile(profile: InsertProfile): Promise<Profile>;
   updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined>;
+  deleteProfile(id: string): Promise<boolean>;
   setActiveProfile(id: string): Promise<void>;
 
   // Blood pressure reading methods
@@ -73,6 +74,23 @@ export class MySQLStorage implements IStorage {
   async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined> {
     await db.update(profiles).set(updates).where(eq(profiles.id, id));
     return this.getProfile(id);
+  }
+
+  async deleteProfile(id: string): Promise<boolean> {
+    try {
+      // First delete all associated readings
+      await db.delete(bloodPressureReadings).where(eq(bloodPressureReadings.profileId, id));
+      
+      // Then delete all associated reminders
+      await db.delete(reminders).where(eq(reminders.profileId, id));
+      
+      // Finally delete the profile
+      const result = await db.delete(profiles).where(eq(profiles.id, id));
+      return result.rowsAffected > 0;
+    } catch (error) {
+      console.error("Error deleting profile:", error);
+      return false;
+    }
   }
 
   async setActiveProfile(id: string): Promise<void> {
@@ -242,6 +260,30 @@ export class MemStorage implements IStorage {
     return updatedProfile;
   }
 
+  async deleteProfile(id: string): Promise<boolean> {
+    // Delete all associated readings
+    const readingsToDelete = Array.from(this.readings.values())
+      .filter(reading => reading.profileId === id);
+    for (const reading of readingsToDelete) {
+      this.readings.delete(reading.id);
+    }
+
+    // Delete all associated reminders
+    const remindersToDelete = Array.from(this.reminders.values())
+      .filter(reminder => reminder.profileId === id);
+    for (const reminder of remindersToDelete) {
+      this.reminders.delete(reminder.id);
+    }
+
+    // If this was the active profile, clear the active profile
+    if (this.activeProfileId === id) {
+      this.activeProfileId = null;
+    }
+
+    // Delete the profile
+    return this.profiles.delete(id);
+  }
+
   async setActiveProfile(id: string): Promise<void> {
     // Set all profiles inactive
     const profilesArray = Array.from(this.profiles.values());
@@ -388,6 +430,25 @@ export class DatabaseStorage implements IStorage {
       .where(eq(profiles.id, id))
       .returning();
     return profile || undefined;
+  }
+
+  async deleteProfile(id: string): Promise<boolean> {
+    try {
+      const { db } = await import('./db');
+      
+      // First delete all associated readings
+      await db.delete(bloodPressureReadings).where(eq(bloodPressureReadings.profileId, id));
+      
+      // Then delete all associated reminders
+      await db.delete(reminders).where(eq(reminders.profileId, id));
+      
+      // Finally delete the profile
+      const result = await db.delete(profiles).where(eq(profiles.id, id));
+      return result.rowsAffected > 0;
+    } catch (error) {
+      console.error("Error deleting profile:", error);
+      return false;
+    }
   }
 
   async setActiveProfile(id: string): Promise<void> {

@@ -49,6 +49,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/profiles/:id", async (req, res) => {
+    try {
+      const partialSchema = insertProfileSchema.partial();
+      const validatedData = partialSchema.parse(req.body);
+      const updatedProfile = await storage.updateProfile(req.params.id, validatedData);
+      if (!updatedProfile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      res.json(updatedProfile);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid profile data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.delete("/api/profiles/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteProfile(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      res.json({ message: "Profile deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete profile" });
+    }
+  });
+
   // Blood pressure reading routes
   app.get("/api/readings", async (req, res) => {
     try {
