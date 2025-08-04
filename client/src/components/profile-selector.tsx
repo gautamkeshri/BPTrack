@@ -30,6 +30,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
 
   const { data: profiles, isLoading } = useQuery<Profile[]>({
@@ -183,7 +184,55 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
 
   const handleDeleteProfile = (profile: Profile) => {
     setSelectedProfile(profile);
+    setShowExportDialog(true);
+  };
+
+  const confirmDelete = () => {
+    setShowExportDialog(false);
     setShowDeleteDialog(true);
+  };
+
+  const exportProfileData = async () => {
+    if (!selectedProfile) return;
+
+    try {
+      // Get profile readings for export
+      const response = await fetch(`/api/readings?profileId=${selectedProfile.id}`);
+      const readings = await response.json();
+
+      // Create export data
+      const exportData = {
+        profile: selectedProfile,
+        readings: readings,
+        exportDate: new Date().toISOString(),
+      };
+
+      // Create and download JSON file
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${selectedProfile.name.replace(/\s+/g, '_')}_health_data.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Data exported",
+        description: "Health data has been exported successfully.",
+      });
+
+      // Proceed to delete confirmation
+      confirmDelete();
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getInitials = (name: string) => {
@@ -465,13 +514,43 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
         </DialogContent>
       </Dialog>
 
+      {/* Export Before Delete Dialog */}
+      <AlertDialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Export Health Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Before deleting "{selectedProfile?.name}", would you like to export their health data? This includes all blood pressure readings and profile information.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowExportDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <Button 
+              variant="outline" 
+              onClick={confirmDelete}
+              className="mr-2"
+            >
+              Skip Export
+            </Button>
+            <AlertDialogAction
+              onClick={exportProfileData}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Export & Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Profile</AlertDialogTitle>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedProfile?.name}"? This action cannot be undone and will remove all associated blood pressure readings.
+              Are you absolutely sure you want to delete "{selectedProfile?.name}"? This action cannot be undone and will permanently remove all associated blood pressure readings and reminders.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -485,7 +564,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
               disabled={deleteProfile.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteProfile.isPending ? "Deleting..." : "Delete Profile"}
+              {deleteProfile.isPending ? "Deleting..." : "Delete Permanently"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

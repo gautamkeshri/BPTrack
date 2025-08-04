@@ -78,6 +78,12 @@ export class MySQLStorage implements IStorage {
 
   async deleteProfile(id: string): Promise<boolean> {
     try {
+      // Check if profile exists first
+      const existingProfile = await this.getProfile(id);
+      if (!existingProfile) {
+        return false;
+      }
+
       // First delete all associated readings
       await db.delete(bloodPressureReadings).where(eq(bloodPressureReadings.profileId, id));
       
@@ -85,8 +91,8 @@ export class MySQLStorage implements IStorage {
       await db.delete(reminders).where(eq(reminders.profileId, id));
       
       // Finally delete the profile
-      const result = await db.delete(profiles).where(eq(profiles.id, id));
-      return result.rowsAffected > 0;
+      await db.delete(profiles).where(eq(profiles.id, id));
+      return true;
     } catch (error) {
       console.error("Error deleting profile:", error);
       return false;
@@ -436,6 +442,12 @@ export class DatabaseStorage implements IStorage {
     try {
       const { db } = await import('./db');
       
+      // Check if profile exists first
+      const existingProfile = await this.getProfile(id);
+      if (!existingProfile) {
+        return false;
+      }
+      
       // First delete all associated readings
       await db.delete(bloodPressureReadings).where(eq(bloodPressureReadings.profileId, id));
       
@@ -443,8 +455,8 @@ export class DatabaseStorage implements IStorage {
       await db.delete(reminders).where(eq(reminders.profileId, id));
       
       // Finally delete the profile
-      const result = await db.delete(profiles).where(eq(profiles.id, id));
-      return result.rowsAffected > 0;
+      await db.delete(profiles).where(eq(profiles.id, id));
+      return true;
     } catch (error) {
       console.error("Error deleting profile:", error);
       return false;

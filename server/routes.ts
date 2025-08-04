@@ -81,9 +81,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Blood pressure reading routes
   app.get("/api/readings", async (req, res) => {
     try {
-      const activeProfile = await storage.getActiveProfile();
-      if (!activeProfile) {
-        return res.status(404).json({ message: "No active profile found" });
+      // Support getting readings for a specific profile via query parameter
+      const profileId = req.query.profileId as string;
+      let targetProfileId: string;
+
+      if (profileId) {
+        // Validate that the profile exists
+        const profile = await storage.getProfile(profileId);
+        if (!profile) {
+          return res.status(404).json({ message: "Profile not found" });
+        }
+        targetProfileId = profileId;
+      } else {
+        // Default to active profile
+        const activeProfile = await storage.getActiveProfile();
+        if (!activeProfile) {
+          return res.status(404).json({ message: "No active profile found" });
+        }
+        targetProfileId = activeProfile.id;
       }
 
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
@@ -91,9 +106,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let readings;
       if (startDate && endDate) {
-        readings = await storage.getReadingsByDateRange(activeProfile.id, startDate, endDate);
+        readings = await storage.getReadingsByDateRange(targetProfileId, startDate, endDate);
       } else {
-        readings = await storage.getReadings(activeProfile.id);
+        readings = await storage.getReadings(targetProfileId);
       }
 
       res.json(readings);
