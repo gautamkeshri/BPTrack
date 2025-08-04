@@ -1,43 +1,50 @@
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
-import * as schema from "../shared/schema";
+import { Client } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '../shared/schema';
 
-// Database connection configuration
-const connectionConfig = {
-  host: process.env.DB_HOST || "localhost",
-  port: parseInt(process.env.DB_PORT || "3306"),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "blood_pressure_app",
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
-};
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
-// Create connection pool for better performance
-const connection = mysql.createPool(connectionConfig);
+console.log('🔄 Connecting to Replit PostgreSQL database...');
 
-// Create Drizzle instance
-export const db = drizzle(connection, { schema, mode: "default" });
+// Create PostgreSQL client
+export const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
-// Database connection test
-export async function testConnection() {
+// Create drizzle instance
+export const db = drizzle(client, { schema });
+
+// Initialize connection
+let isConnected = false;
+
+export async function initializeDatabase(): Promise<boolean> {
+  if (isConnected) return true;
+  
   try {
-    console.log(`🔄 Testing MySQL connection to ${connectionConfig.host}:${connectionConfig.port}...`);
-    console.log(`📋 Connection config: host=${connectionConfig.host}, user=${connectionConfig.user}, database=${connectionConfig.database}`);
-    
-    const conn = await connection.getConnection();
-    await conn.ping();
-    conn.release();
-    console.log("✅ MySQL database connected successfully");
+    await client.connect();
+    await client.query('SELECT 1');
+    console.log('✅ Connected to Replit PostgreSQL database');
+    isConnected = true;
     return true;
   } catch (error: any) {
-    console.error("❌ MySQL database connection failed:", error);
-    if (error.code === 'ECONNREFUSED') {
-      console.error("   Make sure MySQL server is running on the specified port");
-    } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
-      console.error("   Check username and password credentials");
-    } else if (error.code === 'ER_BAD_DB_ERROR') {
-      console.error("   Database does not exist - you may need to create it first");
+    console.error('❌ Failed to connect to Replit database:', error.message);
+    return false;
+  }
+}
+
+// Test connection function
+export async function testConnection(): Promise<boolean> {
+  try {
+    if (!isConnected) {
+      await initializeDatabase();
     }
+    await client.query('SELECT 1');
+    return true;
+  } catch (error: any) {
+    console.error('❌ Database connection test failed:', error.message);
     return false;
   }
 }
@@ -45,9 +52,12 @@ export async function testConnection() {
 // Close database connection
 export async function closeConnection() {
   try {
-    await connection.end();
-    console.log("🔌 MySQL database connection closed");
-  } catch (error) {
-    console.error("Error closing database connection:", error);
+    if (isConnected) {
+      await client.end();
+      isConnected = false;
+      console.log('🔌 PostgreSQL database connection closed');
+    }
+  } catch (error: any) {
+    console.error('Error closing database connection:', error.message);
   }
 }

@@ -352,21 +352,179 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Smart storage selection - use MySQL if available, fallback to MemStorage
-async function initializeStorage(): Promise<IStorage> {
-  // Check if MySQL credentials are provided and attempt connection
-  if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
-    try {
-      const { testConnection } = await import('./db');
-      const connected = await testConnection();
-      
-      if (connected) {
-        console.log('✅ Connected to MySQL database');
-        return new MySQLStorage();
-      }
-    } catch (error) {
-      console.warn('MySQL not available, using in-memory storage');
+// Database storage using Replit PostgreSQL
+export class DatabaseStorage implements IStorage {
+  async getActiveProfile(): Promise<Profile | undefined> {
+    const { db } = await import('./db');
+    const [activeProfile] = await db.select().from(profiles).where(eq(profiles.isActive, true));
+    return activeProfile || undefined;
+  }
+
+  async getProfiles(): Promise<Profile[]> {
+    const { db } = await import('./db');
+    return await db.select().from(profiles);
+  }
+
+  async getProfile(id: string): Promise<Profile | undefined> {
+    const { db } = await import('./db');
+    const [profile] = await db.select().from(profiles).where(eq(profiles.id, id));
+    return profile || undefined;
+  }
+
+  async createProfile(data: InsertProfile): Promise<Profile> {
+    const { db } = await import('./db');
+    const [profile] = await db
+      .insert(profiles)
+      .values([data])
+      .returning();
+    return profile;
+  }
+
+  async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile | undefined> {
+    const { db } = await import('./db');
+    const [profile] = await db
+      .update(profiles)
+      .set(updates)
+      .where(eq(profiles.id, id))
+      .returning();
+    return profile || undefined;
+  }
+
+  async setActiveProfile(id: string): Promise<void> {
+    const { db } = await import('./db');
+    
+    // Deactivate all profiles
+    await db.update(profiles).set({ isActive: false });
+    
+    // Activate the selected profile
+    await db
+      .update(profiles)
+      .set({ isActive: true })
+      .where(eq(profiles.id, id));
+  }
+
+  async getReadings(profileId: string): Promise<BloodPressureReading[]> {
+    const { db } = await import('./db');
+    return await db
+      .select()
+      .from(bloodPressureReadings)
+      .where(eq(bloodPressureReadings.profileId, profileId))
+      .orderBy(desc(bloodPressureReadings.readingDate));
+  }
+
+  async getReadingsByDateRange(profileId: string, startDate: Date, endDate: Date): Promise<BloodPressureReading[]> {
+    const { db } = await import('./db');
+    return await db
+      .select()
+      .from(bloodPressureReadings)
+      .where(
+        and(
+          eq(bloodPressureReadings.profileId, profileId),
+          gte(bloodPressureReadings.readingDate, startDate),
+          lte(bloodPressureReadings.readingDate, endDate)
+        )
+      )
+      .orderBy(desc(bloodPressureReadings.readingDate));
+  }
+
+  async createReading(data: InsertBloodPressureReading): Promise<BloodPressureReading> {
+    const { db } = await import('./db');
+    
+    // Get active profile if no profileId provided
+    const profileId = data.profileId || (await this.getActiveProfile())?.id;
+    
+    if (!profileId) {
+      throw new Error('No active profile found');
     }
+
+    // Calculate derived metrics
+    const classification = classifyBloodPressure(data.systolic, data.diastolic);
+    const pulseStressure = calculatePulseStressure(data.systolic, data.diastolic);
+    const meanArterialPressure = calculateMeanArterialPressure(data.systolic, data.diastolic);
+
+    const readingData = {
+      ...data,
+      profileId,
+      classification: String(classification),
+      pulseStressure,
+      meanArterialPressure,
+    };
+
+    const [reading] = await db
+      .insert(bloodPressureReadings)
+      .values([readingData])
+      .returning();
+
+    return reading;
+  }
+
+  async deleteReading(id: string): Promise<boolean> {
+    const { db } = await import('./db');
+    const result = await db
+      .delete(bloodPressureReadings)
+      .where(eq(bloodPressureReadings.id, id));
+    
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getReminders(profileId: string): Promise<Reminder[]> {
+    const { db } = await import('./db');
+    return await db
+      .select()
+      .from(reminders)
+      .where(eq(reminders.profileId, profileId))
+      .orderBy(reminders.time);
+  }
+
+  async createReminder(data: InsertReminder): Promise<Reminder> {
+    const { db } = await import('./db');
+    
+    const profileId = data.profileId || (await this.getActiveProfile())?.id;
+    
+    if (!profileId) {
+      throw new Error('No active profile found');
+    }
+
+    const [reminder] = await db
+      .insert(reminders)
+      .values([{ ...data, profileId }])
+      .returning();
+
+    return reminder;
+  }
+
+  async updateReminder(id: string, updates: Partial<Reminder>): Promise<Reminder | undefined> {
+    const { db } = await import('./db');
+    const [reminder] = await db
+      .update(reminders)
+      .set(updates)
+      .where(eq(reminders.id, id))
+      .returning();
+    return reminder || undefined;
+  }
+
+  async deleteReminder(id: string): Promise<boolean> {
+    const { db } = await import('./db');
+    const result = await db
+      .delete(reminders)
+      .where(eq(reminders.id, id));
+    
+    return (result.rowCount || 0) > 0;
+  }
+}
+
+// Initialize storage - use Replit database
+async function initializeStorage(): Promise<IStorage> {
+  try {
+    const { initializeDatabase } = await import('./db');
+    const connected = await initializeDatabase();
+    
+    if (connected) {
+      console.log('✅ Using Replit PostgreSQL database');
+      return new DatabaseStorage();
+    }
+  } catch (error) {
+    console.warn('Replit database not available, using in-memory storage');
   }
   
   console.log('📦 Using in-memory storage (data will not persist)');
