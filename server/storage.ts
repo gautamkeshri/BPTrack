@@ -513,7 +513,7 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Initialize storage - use Replit database
+// Initialize storage - use Replit database with fallback
 async function initializeStorage(): Promise<IStorage> {
   try {
     const { initializeDatabase } = await import('./db');
@@ -523,27 +523,60 @@ async function initializeStorage(): Promise<IStorage> {
       console.log('✅ Using Replit PostgreSQL database');
       return new DatabaseStorage();
     }
-  } catch (error) {
-    console.warn('Replit database not available, using in-memory storage');
+  } catch (error: any) {
+    console.warn('⚠️ Replit database not available, falling back to in-memory storage:', error.message);
   }
   
   console.log('📦 Using in-memory storage (data will not persist)');
   return new MemStorage();
 }
 
-// Initialize storage asynchronously
+// Storage instance management with retry logic
 let storageInstance: IStorage = new MemStorage();
+let isInitializing = false;
 
+async function getStorageInstance(): Promise<IStorage> {
+  if (!isInitializing && storageInstance instanceof MemStorage) {
+    isInitializing = true;
+    try {
+      const newStorage = await initializeStorage();
+      storageInstance = newStorage;
+    } catch (error) {
+      console.error('Failed to initialize storage:', error);
+    } finally {
+      isInitializing = false;
+    }
+  }
+  return storageInstance;
+}
+
+// Initialize storage immediately
 initializeStorage().then(storage => {
   storageInstance = storage;
-}).catch(() => {
+}).catch(error => {
+  console.error('Initial storage setup failed:', error);
   storageInstance = new MemStorage();
 });
 
-// Export storage with proper proxy to handle async initialization
+// Export storage with proxy that handles async initialization
 export const storage = new Proxy({} as IStorage, {
   get(target, prop) {
-    const value = (storageInstance as any)[prop];
-    return typeof value === 'function' ? value.bind(storageInstance) : value;
+    if (typeof prop === 'string' && typeof (storageInstance as any)[prop] === 'function') {
+      return async (...args: any[]) => {
+        try {
+          const currentStorage = await getStorageInstance();
+          return await (currentStorage as any)[prop](...args);
+        } catch (error: any) {
+          // If database operation fails, try to fallback to memory storage
+          if (!(storageInstance instanceof MemStorage)) {
+            console.error(`Database operation failed for ${prop}, falling back to memory storage:`, error.message);
+            storageInstance = new MemStorage();
+            return await (storageInstance as any)[prop](...args);
+          }
+          throw error;
+        }
+      };
+    }
+    return (storageInstance as any)[prop];
   }
 });
