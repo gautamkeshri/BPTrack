@@ -200,20 +200,56 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
       const response = await fetch(`/api/readings?profileId=${selectedProfile.id}`);
       const readings = await response.json();
 
-      // Create export data
-      const exportData = {
-        profile: selectedProfile,
-        readings: readings,
-        exportDate: new Date().toISOString(),
-      };
+      // Create CSV content
+      const csvHeaders = [
+        'Date',
+        'Time', 
+        'Systolic (mmHg)',
+        'Diastolic (mmHg)',
+        'Pulse (bpm)',
+        'Classification',
+        'Pulse Pressure',
+        'Mean Arterial Pressure',
+        'Notes'
+      ];
 
-      // Create and download JSON file
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const csvRows = readings.map((reading: any) => {
+        const date = new Date(reading.readingDate);
+        return [
+          date.toLocaleDateString(),
+          date.toLocaleTimeString(),
+          reading.systolic,
+          reading.diastolic,
+          reading.pulse || '',
+          reading.classification,
+          reading.pulseStressure || '',
+          reading.meanArterialPressure || '',
+          reading.notes || ''
+        ];
+      });
+
+      // Add profile info header
+      const profileHeader = [
+        `Blood Pressure Readings for ${selectedProfile.name}`,
+        `Gender: ${selectedProfile.gender}`,
+        `Age: ${selectedProfile.age}`,
+        `Medical Conditions: ${Array.isArray(selectedProfile.medicalConditions) ? selectedProfile.medicalConditions.join(', ') : 'None'}`,
+        `Export Date: ${new Date().toLocaleString()}`,
+        '', // Empty row
+        csvHeaders.join(',')
+      ];
+
+      const csvContent = [
+        ...profileHeader,
+        ...csvRows.map(row => row.join(','))
+      ].join('\n');
+
+      // Create and download CSV file
+      const dataBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(dataBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${selectedProfile.name.replace(/\s+/g, '_')}_health_data.json`;
+      link.download = `${selectedProfile.name.replace(/\s+/g, '_')}_BP_readings.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -221,7 +257,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
 
       toast({
         title: "Data exported",
-        description: "Health data has been exported successfully.",
+        description: "Blood pressure readings have been exported as CSV.",
       });
 
       // Proceed to delete confirmation
@@ -520,7 +556,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
           <AlertDialogHeader>
             <AlertDialogTitle>Export Health Data</AlertDialogTitle>
             <AlertDialogDescription>
-              Before deleting "{selectedProfile?.name}", would you like to export their health data? This includes all blood pressure readings and profile information.
+              Before deleting "{selectedProfile?.name}", would you like to export their blood pressure readings as a CSV file? This will include all readings with dates, values, and classifications.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -538,7 +574,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
               onClick={exportProfileData}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Export & Continue
+              Export CSV & Continue
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
