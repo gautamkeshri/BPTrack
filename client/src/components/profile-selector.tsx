@@ -2,18 +2,30 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Profile } from "@shared/schema";
+import { Profile, insertProfileSchema } from "@shared/schema";
 
 interface ProfileSelectorProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const createProfileSchema = insertProfileSchema.extend({
+  medicalConditions: z.array(z.string()).optional().default([]),
+});
+
 export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const { data: profiles, isLoading } = useQuery<Profile[]>({
     queryKey: ['/api/profiles'],
@@ -48,6 +60,42 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
       });
     },
   });
+
+  const createProfile = useMutation({
+    mutationFn: async (data: z.infer<typeof createProfileSchema>) => {
+      return apiRequest('POST', '/api/profiles', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/profiles'] });
+      toast({
+        title: "Profile created",
+        description: "New profile has been created successfully.",
+      });
+      setShowCreateForm(false);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const form = useForm<z.infer<typeof createProfileSchema>>({
+    resolver: zodResolver(createProfileSchema),
+    defaultValues: {
+      name: "",
+      gender: "male",
+      age: 30,
+      medicalConditions: [],
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof createProfileSchema>) => {
+    createProfile.mutate(data);
+  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -85,6 +133,7 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
             variant="ghost"
             size="sm"
             className="text-blue-600 hover:text-blue-700"
+            onClick={() => setShowCreateForm(true)}
           >
             <UserPlus className="h-5 w-5" />
           </Button>
@@ -127,6 +176,90 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
           )}
         </div>
       </div>
+
+      {/* Create Profile Dialog */}
+      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Profile</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gender</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Age</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="Enter age" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowCreateForm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createProfile.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {createProfile.isPending ? "Creating..." : "Create Profile"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
