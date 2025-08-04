@@ -22,7 +22,7 @@ import ProfileSelector from "@/components/profile-selector";
 import DistributionChart from "@/components/charts/distribution-chart";
 import TrendChart from "@/components/charts/trend-chart";
 import { BloodPressureReading, Profile } from "@shared/schema";
-import { getClassificationColor } from "@/lib/blood-pressure";
+import { getClassificationColor, parseClassification } from "@/lib/blood-pressure";
 import { generateBloodPressureReport, generateCSVReport } from "@/lib/pdf-generator";
 
 export default function Home() {
@@ -161,8 +161,8 @@ export default function Home() {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium">{latestReading.pulse} BPM</div>
-                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${getClassificationColor(latestReading.classification)} text-white`}>
-                      {latestReading.classification}
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${getClassificationColor(parseClassification(latestReading.classification))} text-white`}>
+                      {parseClassification(latestReading.classification)}
                     </div>
                   </div>
                 </div>
@@ -210,13 +210,13 @@ export default function Home() {
                           </div>
                         </div>
                         {/* Status Indicator */}
-                        <div className={`w-1 h-12 ${getClassificationColor(reading.classification)} rounded-full`}></div>
+                        <div className={`w-1 h-12 ${getClassificationColor(parseClassification(reading.classification))} rounded-full`}></div>
                         {/* Reading Values */}
                         <div className="flex-1">
                           <div className="text-xl font-bold text-slate-900">
                             {reading.systolic}/{reading.diastolic} <span className="text-sm font-normal text-slate-500">mmHg</span>
                           </div>
-                          <div className="text-sm text-slate-500">{reading.classification}</div>
+                          <div className="text-sm text-slate-500">{parseClassification(reading.classification)}</div>
                         </div>
                       </div>
                       {/* Pulse */}

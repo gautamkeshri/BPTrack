@@ -1,4 +1,4 @@
-import { getClassificationColor } from "@/lib/blood-pressure";
+import { getClassificationColor, parseClassification } from "@/lib/blood-pressure";
 
 interface DistributionData {
   [classification: string]: number;

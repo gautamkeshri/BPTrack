@@ -107,7 +107,7 @@ export class MySQLStorage implements IStorage {
 
   async createReading(reading: InsertBloodPressureReading): Promise<BloodPressureReading> {
     const id = randomUUID();
-    const classification = classifyBloodPressure(reading.systolic, reading.diastolic);
+    const classificationResult = classifyBloodPressure(reading.systolic, reading.diastolic);
     const pulseStressure = calculatePulseStressure(reading.systolic, reading.diastolic);
     const meanArterialPressure = calculateMeanArterialPressure(reading.systolic, reading.diastolic);
 
@@ -118,7 +118,7 @@ export class MySQLStorage implements IStorage {
       diastolic: reading.diastolic,
       pulse: reading.pulse,
       readingDate: new Date(reading.readingDate),
-      classification: classification.category,
+      classification: classificationResult.category, // Store only the category string
       pulseStressure,
       meanArterialPressure,
       createdAt: new Date(),
@@ -438,14 +438,14 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Calculate derived metrics
-    const classification = classifyBloodPressure(data.systolic, data.diastolic);
+    const classificationResult = classifyBloodPressure(data.systolic, data.diastolic);
     const pulseStressure = calculatePulseStressure(data.systolic, data.diastolic);
     const meanArterialPressure = calculateMeanArterialPressure(data.systolic, data.diastolic);
 
     const readingData = {
       ...data,
       profileId,
-      classification: String(classification),
+      classification: classificationResult.category, // Store only the category string
       pulseStressure,
       meanArterialPressure,
     };
