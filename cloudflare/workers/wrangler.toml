@@ -1,0 +1,68 @@
+name = "bptrack-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Account ID - Replace with your Cloudflare account ID
+# Get it from: https://dash.cloudflare.com/
+# account_id = "your-account-id-here"
+
+# Workers configuration
+[build]
+command = "npm run build"
+
+# Environment variables for local development
+# Create .dev.vars file with actual values (not committed to git)
+# [vars]
+# SESSION_SECRET = "development-secret"
+
+# D1 Database binding
+# After creating D1 database with: wrangler d1 create bptrack-db
+# Uncomment and add your database ID
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "bptrack-db"
+# database_id = "your-database-id-here"
+
+# Workers KV binding for sessions
+# After creating KV namespace with: wrangler kv:namespace create "SESSIONS"
+# Uncomment and add your namespace ID
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "your-kv-namespace-id-here"
+
+# Local D1 database for development
+[[d1_databases]]
+binding = "DB"
+database_name = "bptrack-db-local"
+database_id = "local"
+
+# Local KV namespace for development
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "local"
+
+# Limits and performance
+[limits]
+cpu_ms = 50  # 50ms CPU time limit (free tier: 10ms, but we can optimize)
+
+# Production environment configuration
+[env.production]
+# Uncomment after creating production D1 database
+# [[env.production.d1_databases]]
+# binding = "DB"
+# database_name = "bptrack-db"
+# database_id = "your-production-database-id"
+
+# Uncomment after creating production KV namespace
+# [[env.production.kv_namespaces]]
+# binding = "SESSIONS"
+# id = "your-production-kv-id"
+
+# Staging environment configuration
+[env.staging]
+# Uncomment after creating staging D1 database
+# [[env.staging.d1_databases]]
+# binding = "DB"
+# database_name = "bptrack-db-staging"
+# database_id = "your-staging-database-id"

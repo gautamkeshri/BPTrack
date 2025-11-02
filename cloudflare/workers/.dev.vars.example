@@ -1,0 +1,11 @@
+# Development Environment Variables
+# Copy this file to .dev.vars (not committed to git)
+
+# Session secret for JWT signing
+SESSION_SECRET=your-development-secret-change-this
+
+# CORS allowed origins (comma-separated)
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5000
+
+# Environment
+ENVIRONMENT=development

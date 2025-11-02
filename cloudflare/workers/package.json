@@ -1,0 +1,37 @@
+{
+  "name": "bptrack-workers",
+  "version": "1.0.0",
+  "description": "BPTrack API on Cloudflare Workers",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.js --platform=neutral",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "d1:create": "wrangler d1 create bptrack-db",
+    "d1:migrate": "wrangler d1 execute bptrack-db --file=./src/db/schema.sql",
+    "d1:migrate:local": "wrangler d1 execute bptrack-db-local --local --file=./src/db/schema.sql",
+    "d1:seed": "wrangler d1 execute bptrack-db --file=./src/db/seed.sql",
+    "d1:seed:local": "wrangler d1 execute bptrack-db-local --local --file=./src/db/seed.sql",
+    "kv:create": "wrangler kv:namespace create SESSIONS",
+    "test": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.39.1",
+    "drizzle-zod": "^0.7.0",
+    "hono": "^4.0.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "@types/node": "^20.16.11",
+    "drizzle-kit": "^0.30.4",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.3",
+    "vitest": "^1.0.0",
+    "wrangler": "^3.95.0"
+  }
+}
