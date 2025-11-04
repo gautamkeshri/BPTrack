@@ -5,11 +5,13 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
+    "verify": "node verify-setup.js",
     "dev": "wrangler dev",
     "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.js --platform=neutral",
     "deploy": "wrangler deploy",
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:production": "wrangler deploy --env production",
+    "setup:local": "wrangler d1 execute bptrack-db-local --local --file=./src/db/schema.sql && wrangler d1 execute bptrack-db-local --local --file=./src/db/seed.sql",
     "d1:create": "wrangler d1 create bptrack-db",
     "d1:migrate": "wrangler d1 execute bptrack-db --file=./src/db/schema.sql",
     "d1:migrate:local": "wrangler d1 execute bptrack-db-local --local --file=./src/db/schema.sql",
