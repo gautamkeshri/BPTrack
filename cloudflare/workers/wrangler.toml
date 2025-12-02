@@ -5,59 +5,57 @@ compatibility_flags = ["nodejs_compat"]
 
 # Account ID - Replace with your Cloudflare account ID
 # Get it from: https://dash.cloudflare.com/
-# account_id = "your-account-id-here"
+account_id = "0564c338e25512b9a5a4f45585b8fa8b"
 
 # Workers configuration
 [build]
 command = "npm run build"
 
-# Environment variables for local development
-# Create .dev.vars file with actual values (not committed to git)
-# [vars]
-# SESSION_SECRET = "development-secret"
+# Environment variables for production deployment
+[vars]
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5000,https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
+SESSION_SECRET = "development-secret-change-in-production"
 
-# D1 Database binding
-# After creating D1 database with: wrangler d1 create bptrack-db
-# Uncomment and add your database ID
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "bptrack-db"
-# database_id = "your-database-id-here"
-
-# Workers KV binding for sessions
-# After creating KV namespace with: wrangler kv:namespace create "SESSIONS"
-# Uncomment and add your namespace ID
-# [[kv_namespaces]]
-# binding = "SESSIONS"
-# id = "your-kv-namespace-id-here"
-
-# Local D1 database for development
+# D1 Database binding - Production (default)
 [[d1_databases]]
 binding = "DB"
-database_name = "bptrack-db-local"
-database_id = "local"
+database_name = "bptrack-db"
+database_id = "4cf465e3-2786-4c6d-a0f1-ef2acf923d2a"
 
-# Local KV namespace for development
+# Workers KV binding for sessions - Production (default)
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "local"
+id = "55dc933c60534a52b641e13db27404f4"
 
-# Limits and performance
-[limits]
-cpu_ms = 50  # 50ms CPU time limit (free tier: 10ms, but we can optimize)
+# Local D1 database for development (uncomment when using "wrangler dev")
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "bptrack-db-local"
+# database_id = "local"
+
+# Local KV namespace for development (uncomment when using "wrangler dev")
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "local"
+
+# Limits and performance (CPU limits only available on paid plans)
+# [limits]
+# cpu_ms = 50
 
 # Production environment configuration
 [env.production]
-# Uncomment after creating production D1 database
-# [[env.production.d1_databases]]
-# binding = "DB"
-# database_name = "bptrack-db"
-# database_id = "your-production-database-id"
+[env.production.vars]
+ALLOWED_ORIGINS = "https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
+SESSION_SECRET = "change-this-to-secure-random-string"
 
-# Uncomment after creating production KV namespace
-# [[env.production.kv_namespaces]]
-# binding = "SESSIONS"
-# id = "your-production-kv-id"
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "bptrack-db"
+database_id = "4cf465e3-2786-4c6d-a0f1-ef2acf923d2a"
+
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+id = "55dc933c60534a52b641e13db27404f4"
 
 # Staging environment configuration
 [env.staging]

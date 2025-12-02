@@ -43,7 +43,8 @@ export const insertProfileSchema = createInsertSchema(profiles).pick({
   name: true,
   gender: true,
   age: true,
-  medicalConditions: true,
+}).extend({
+  medicalConditions: z.array(z.string()).optional().default([]),
 });
 
 export const insertBloodPressureReadingSchema = z.object({
@@ -51,8 +52,8 @@ export const insertBloodPressureReadingSchema = z.object({
   systolic: z.number().min(70).max(250),
   diastolic: z.number().min(40).max(150),
   pulse: z.number().min(40).max(200),
-  weight: z.number().min(20).max(300).optional(),
-  notes: z.string().optional(),
+  weight: z.number().min(20).max(300).optional().or(z.literal('').transform(() => undefined)),
+  notes: z.string().optional().or(z.literal('')),
   readingDate: z.coerce.date(),
 });
 

@@ -26,6 +26,7 @@ import TrendChart from "@/components/charts/trend-chart";
 import { BloodPressureReading, Profile } from "@shared/schema";
 import { getClassificationColor, parseClassification } from "@/lib/blood-pressure";
 import { generateBloodPressureReport, downloadCSVReport } from "@/lib/pdf-generator";
+import { getApiUrl } from "@/config";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'readings' | 'statistics' | 'charts'>('readings');
@@ -51,9 +52,16 @@ export default function Home() {
   const { data: statistics } = useQuery({
     queryKey: ['/api/statistics', dateFilter],
     queryFn: async () => {
-      const response = await fetch(`/api/statistics?days=${dateFilter}`);
+      const response = await fetch(getApiUrl(`/api/statistics?days=${dateFilter}`));
       if (!response.ok) throw new Error('Failed to fetch statistics');
-      return response.json();
+      const json = await response.json();
+
+      // Unwrap API response: {success: true, data: ...} -> data
+      if (json && typeof json === 'object' && 'data' in json) {
+        return json.data;
+      }
+
+      return json;
     },
   });
 
@@ -61,18 +69,20 @@ export default function Home() {
   const latestReading = readings[0];
 
   // Get avatar initials and color
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
+  const getAvatarColor = (name?: string) => {
     const colors = [
       'from-blue-500 to-blue-600',
-      'from-purple-500 to-purple-600', 
+      'from-purple-500 to-purple-600',
       'from-pink-500 to-pink-600',
       'from-green-500 to-green-600',
       'from-orange-500 to-orange-600',
     ];
+    if (!name || name.length === 0) return colors[0];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
   };

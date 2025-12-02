@@ -271,18 +271,20 @@ export default function ProfileSelector({ isOpen, onClose }: ProfileSelectorProp
     }
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
+  const getAvatarColor = (name?: string) => {
     const colors = [
       'from-blue-500 to-blue-600',
-      'from-purple-500 to-purple-600', 
+      'from-purple-500 to-purple-600',
       'from-pink-500 to-pink-600',
       'from-green-500 to-green-600',
       'from-orange-500 to-orange-600',
     ];
+    if (!name || name.length === 0) return colors[0];
     const index = name.charCodeAt(0) % colors.length;
     return colors[index];
   };

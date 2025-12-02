@@ -343,3 +343,27 @@ npx wrangler tail
 ---
 
 **Happy coding! 🚀**
+
+---
+
+## 🔁 CI / GitHub Actions
+
+We've added a GitHub Actions workflow to automatically deploy the Workers project on pushes to `main`.
+
+- Workflow file: `.github/workflows/deploy-cloudflare.yml`
+- What it does: builds the Workers bundle (`npm run build`) and runs the production deploy script (`npm run deploy:production`) in `cloudflare/workers`.
+
+Required repository secrets (add under Settings → Secrets):
+- `CLOUDFLARE_API_TOKEN` — API token with permissions to manage Workers and D1 (Workers/Wrangler write access).
+
+If you prefer to deploy manually from your machine, run from `cloudflare/workers`:
+
+```powershell
+npm ci
+npm run build
+# Deploy (ensure you have run `npx wrangler login` and updated wrangler.toml with your account_id)
+npm run deploy:production
+```
+
+The workflow will only trigger on pushes to `main` and changes under the `cloudflare/` folder.
+

@@ -18,6 +18,8 @@
     "d1:seed": "wrangler d1 execute bptrack-db --file=./src/db/seed.sql",
     "d1:seed:local": "wrangler d1 execute bptrack-db-local --local --file=./src/db/seed.sql",
     "kv:create": "wrangler kv:namespace create SESSIONS",
+    "migrate:pg-to-d1": "node ./scripts/pg-to-d1.js",
+    "verify:wrangler": "node ./scripts/verify-wrangler-config.js",
     "test": "vitest",
     "type-check": "tsc --noEmit"
   },

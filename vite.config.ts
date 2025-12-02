@@ -1,9 +1,9 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-export default defineConfig({
+export default defineConfig(async ({ mode }) => ({
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -24,6 +24,7 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  envPrefix: 'VITE_',
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
@@ -34,4 +35,9 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
-});
+  define: {
+    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(
+      process.env.VITE_API_BASE_URL || loadEnv(mode, process.cwd(), '').VITE_API_BASE_URL || ''
+    ),
+  },
+}));

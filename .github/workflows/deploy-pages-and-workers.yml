@@ -1,0 +1,48 @@
+name: Build and Deploy Pages + Workers
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    name: Build site and deploy to Cloudflare Pages & Workers
+    runs-on: ubuntu-latest
+    env:
+      # Required secrets to be added in repository settings
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PAGES_PROJECT_NAME: ${{ secrets.PAGES_PROJECT_NAME }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build application (client + server)
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages (static site)
+        # Uses wrangler pages publish via npx so no global install is required
+        run: |
+          if [ -z "$PAGES_PROJECT_NAME" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "PAGES_PROJECT_NAME or CLOUDFLARE_ACCOUNT_ID not set. Skipping Pages deploy.";
+            exit 0;
+          fi
+          npx --yes @cloudflare/wrangler pages publish dist/public --project-name "$PAGES_PROJECT_NAME" --branch main --commit-sha $GITHUB_SHA --account-id "$CLOUDFLARE_ACCOUNT_ID"
+
+      - name: Deploy Cloudflare Workers (API)
+        working-directory: cloudflare/workers
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          npm ci
+          npm run build
+          npm run deploy:production

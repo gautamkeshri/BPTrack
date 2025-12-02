@@ -109,18 +109,20 @@ export function getClassificationInfo(classification: string | BloodPressureClas
 }
 
 // Helper functions for UI
-export function getInitials(name: string): string {
+export function getInitials(name?: string): string {
+  if (!name) return '?';
   return name.split(' ').map(n => n[0]).join('').toUpperCase();
 }
 
-export function getAvatarColor(name: string): string {
+export function getAvatarColor(name?: string): string {
   const colors = [
     'from-blue-500 to-blue-600',
-    'from-purple-500 to-purple-600', 
+    'from-purple-500 to-purple-600',
     'from-pink-500 to-pink-600',
     'from-green-500 to-green-600',
     'from-orange-500 to-orange-600',
   ];
+  if (!name || name.length === 0) return colors[0];
   const index = name.charCodeAt(0) % colors.length;
   return colors[index];
 }

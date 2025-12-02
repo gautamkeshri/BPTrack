@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx wrangler d1 list)",
+      "Bash(npx wrangler:*)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)",
+      "Bash(set VITE_API_BASE_URL=https://bptrack-api.gautamkeshri.workers.dev)",
+      "Bash(findstr:*)",
+      "Bash(Select-String -Pattern \"BPTrack|DOCTYPE\")",
+      "Bash(cat:*)",
+      "Bash(node -e:*)",
+      "Bash(dir:*)",
+      "Bash(set NODE_ENV=production)",
+      "Bash(npx vite:*)",
+      "Bash($env:VITE_API_BASE_URL=\"https://bptrack-api.gautamkeshri.workers.dev\")",
+      "Bash(Remove-Item -Recurse -Force distpublic)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

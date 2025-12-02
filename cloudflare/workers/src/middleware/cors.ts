@@ -16,10 +16,19 @@ export async function cors(c: Context<{ Bindings: Env }>, next: Next) {
 
   const origin = c.req.header('Origin');
 
-  // Check if origin is allowed
+  // Check if origin is allowed (supports wildcards like *.pages.dev)
   const isAllowed = origin && (
     allowedOrigins.includes(origin) ||
-    allowedOrigins.includes('*')
+    allowedOrigins.includes('*') ||
+    allowedOrigins.some(allowed => {
+      // Support wildcard patterns like https://*.pages.dev
+      if (allowed.includes('*')) {
+        const pattern = allowed.replace(/\*/g, '.*');
+        const regex = new RegExp(`^${pattern}$`);
+        return regex.test(origin);
+      }
+      return false;
+    })
   );
 
   // Handle preflight requests
