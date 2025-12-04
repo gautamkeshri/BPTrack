@@ -14,7 +14,10 @@
       "Bash(set NODE_ENV=production)",
       "Bash(npx vite:*)",
       "Bash($env:VITE_API_BASE_URL=\"https://bptrack-api.gautamkeshri.workers.dev\")",
-      "Bash(Remove-Item -Recurse -Force distpublic)"
+      "Bash(Remove-Item -Recurse -Force distpublic)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []

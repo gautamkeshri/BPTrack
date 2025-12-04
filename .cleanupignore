@@ -1,0 +1,35 @@
+# Files and directories to remove during cleanup
+
+# Temporary/obsolete documentation
+/check-pm2.md
+/pm2-troubleshoot.md
+/PM2_SETUP.md
+/replit.md
+/.replit
+/ecosystem.config.js
+/ecosystem.config.cjs
+/DEPLOYMENT_GUIDE.md
+/README_DATABASE.md
+/CLOUDFLARE_FEASIBILITY.md
+/CLOUDFLARE_MIGRATION_ROADMAP.md
+/CORS_FIX.md
+/ERROR_FIX.md
+/DEPLOYMENT.md
+/DEPLOYMENT_SUCCESS.md
+/QUICKSTART_DEPLOYMENT.md
+
+# Old scripts
+/db-migrate.cmd
+/db-setup.js
+/pm2-fix.cmd
+/restart-port-6060.cmd
+/start-app.cmd
+
+# Temporary files
+/nul
+/distpublic_redirects
+
+# Empty/obsolete directories
+/logs/
+/database/
+/.wrangler/cache/
