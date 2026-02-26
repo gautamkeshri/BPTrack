@@ -16,6 +16,12 @@ command = "npm run build"
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5000,https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
 SESSION_SECRET = "development-secret-change-in-production"
 
+# Clerk Configuration
+# Get these keys from https://dashboard.clerk.com -> API Keys
+# CLERK_PUBLISHABLE_KEY is safe to commit (public)
+# CLERK_SECRET_KEY must be set via: npx wrangler secret put CLERK_SECRET_KEY
+CLERK_PUBLISHABLE_KEY = "pk_test_REPLACE_WITH_YOUR_CLERK_PUBLISHABLE_KEY"
+
 # D1 Database binding - Production (default)
 [[d1_databases]]
 binding = "DB"
@@ -47,6 +53,7 @@ id = "55dc933c60534a52b641e13db27404f4"
 [env.production.vars]
 ALLOWED_ORIGINS = "https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
 SESSION_SECRET = "change-this-to-secure-random-string"
+CLERK_PUBLISHABLE_KEY = "pk_live_REPLACE_WITH_YOUR_PRODUCTION_CLERK_KEY"
 
 [[env.production.d1_databases]]
 binding = "DB"

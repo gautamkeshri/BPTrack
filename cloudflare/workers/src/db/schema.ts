@@ -6,6 +6,7 @@ import { z } from 'zod';
 // Profiles table
 export const profiles = sqliteTable('profiles', {
   id: text('id').primaryKey(),
+  clerkUserId: text('clerk_user_id'), // Clerk user ID for OAuth authentication
   name: text('name').notNull(),
   gender: text('gender').notNull(), // 'male' | 'female'
   age: integer('age').notNull(),
@@ -47,6 +48,7 @@ export const insertProfileSchema = createInsertSchema(profiles).pick({
   name: true,
   gender: true,
   age: true,
+  clerkUserId: true,
 }).extend({
   medicalConditions: z.array(z.string()).optional().default([]),
 });
