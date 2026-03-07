@@ -10,6 +10,7 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler';
 import profilesRoute from './routes/profiles';
 import readingsRoute from './routes/readings';
 import authRoute from './routes/auth';
+import accessRequestsRoute from './routes/access-requests';
 import type { Env } from './types';
 
 // Create main Hono app
@@ -34,6 +35,7 @@ app.get('/', (c) => {
 app.route('/api/auth', authRoute);
 app.route('/api/profiles', profilesRoute);
 app.route('/api/readings', readingsRoute);
+app.route('/api/access-requests', accessRequestsRoute);
 
 // Statistics endpoint (basic implementation)
 app.get('/api/statistics', async (c) => {

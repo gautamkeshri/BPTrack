@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, Upload, Settings, X, FileDown, FileUp, Trash2, RotateCcw } from "lucide-react";
+import { Download, Upload, Settings, X, FileDown, FileUp, Trash2, RotateCcw, Stethoscope } from "lucide-react";
+import DoctorsPanel from "@/components/doctors-panel";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,6 +24,7 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
   const queryClient = useQueryClient();
   const [showSettings, setShowSettings] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showDoctors, setShowDoctors] = useState(false);
   const [measurementUnit, setMeasurementUnit] = useState("mmHg");
 
   const { data: activeProfile } = useQuery<Profile>({
@@ -168,6 +170,17 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
             <Button
               variant="ghost"
               className="w-full justify-start"
+              onClick={() => { onClose(); setShowDoctors(true); }}
+            >
+              <Stethoscope className="h-4 w-4 mr-2" />
+              My Doctors
+            </Button>
+
+            <Separator />
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
               onClick={handleExportData}
             >
               <FileDown className="h-4 w-4 mr-2" />
@@ -256,7 +269,7 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Reset All Data</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete all {readings.length} blood pressure readings for {activeProfile?.name}. 
+              This will permanently delete all {readings.length} blood pressure readings for {activeProfile?.name}.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -272,6 +285,11 @@ export default function BurgerMenu({ isOpen, onClose }: BurgerMenuProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DoctorsPanel
+        isOpen={showDoctors}
+        onClose={() => setShowDoctors(false)}
+      />
     </>
   );
 }
