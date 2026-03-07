@@ -134,4 +134,86 @@ app.post('/', async (c) => {
   return c.json({ success: true, data: { message: 'Access request sent', doctorName: doctor.name } }, 201);
 });
 
+// ---------------------------------------------------------------------------
+// GET /api/access-requests/incoming
+// Doctor sees all access grants where they are the doctor (with patient info)
+// ---------------------------------------------------------------------------
+app.get('/incoming', async (c) => {
+  const doctorId = c.get('userId');
+  const userRole = c.get('userRole');
+
+  if (userRole !== 'doctor') {
+    return c.json({ success: false, error: { message: 'Only doctors can view incoming requests', code: 'FORBIDDEN' } }, 403);
+  }
+
+  const db = drizzle(c.env.DB);
+
+  const grants = await db
+    .select({
+      id: accessGrants.id,
+      status: accessGrants.status,
+      createdAt: accessGrants.createdAt,
+      updatedAt: accessGrants.updatedAt,
+      patientId: accessGrants.patientId,
+      patientName: users.name,
+      patientEmail: users.email,
+    })
+    .from(accessGrants)
+    .innerJoin(users, eq(accessGrants.patientId, users.id))
+    .where(eq(accessGrants.doctorId, doctorId))
+    .all();
+
+  return c.json({ success: true, data: grants });
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/access-requests/:id
+// Doctor approves or revokes a grant
+// ---------------------------------------------------------------------------
+app.patch('/:id', async (c) => {
+  const doctorId = c.get('userId');
+  const userRole = c.get('userRole');
+  const grantId = c.req.param('id');
+
+  if (userRole !== 'doctor') {
+    return c.json({ success: false, error: { message: 'Only doctors can update access requests', code: 'FORBIDDEN' } }, 403);
+  }
+
+  let body: { status?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ success: false, error: { message: 'Invalid request body', code: 'BAD_REQUEST' } }, 400);
+  }
+
+  const status = body.status;
+  if (status !== 'approved' && status !== 'revoked') {
+    return c.json({ success: false, error: { message: 'status must be "approved" or "revoked"', code: 'BAD_REQUEST' } }, 400);
+  }
+
+  const db = drizzle(c.env.DB);
+
+  // Ensure the grant belongs to this doctor
+  const grant = await db
+    .select({ id: accessGrants.id, doctorId: accessGrants.doctorId })
+    .from(accessGrants)
+    .where(eq(accessGrants.id, grantId))
+    .get();
+
+  if (!grant) {
+    return c.json({ success: false, error: { message: 'Grant not found', code: 'NOT_FOUND' } }, 404);
+  }
+  if (grant.doctorId !== doctorId) {
+    return c.json({ success: false, error: { message: 'Forbidden', code: 'FORBIDDEN' } }, 403);
+  }
+
+  await db
+    .update(accessGrants)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(accessGrants.id, grantId))
+    .run();
+
+  return c.json({ success: true, data: { message: `Grant ${status}` } });
+});
+
 export default app;
