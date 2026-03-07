@@ -6,10 +6,11 @@ import type { Env } from '../types';
 /**
  * CORS middleware
  */
-export async function cors(c: Context<{ Bindings: Env }>, next: Next) {
+export async function cors(c: Context<{ Bindings: Env }>, next: Next): Promise<void | Response> {
   // Get allowed origins from environment or use defaults
-  const allowedOrigins = c.env.ALLOWED_ORIGINS?.split(',') || [
+  const allowedOrigins = c.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [
     'http://localhost:5173',
+    'http://localhost:5174',
     'http://localhost:5000',
     'https://bptrack.pages.dev', // Cloudflare Pages preview
   ];

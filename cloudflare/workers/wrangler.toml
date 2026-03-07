@@ -3,57 +3,31 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Account ID - Replace with your Cloudflare account ID
-# Get it from: https://dash.cloudflare.com/
 account_id = "0564c338e25512b9a5a4f45585b8fa8b"
 
-# Workers configuration
 [build]
 command = "npm run build"
 
-# Environment variables for production deployment
 [vars]
-ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5000,https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:5174,http://localhost:5000,https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
 SESSION_SECRET = "development-secret-change-in-production"
 
-# Clerk Configuration
-# Get these keys from https://dashboard.clerk.com -> API Keys
-# CLERK_PUBLISHABLE_KEY is safe to commit (public)
-# CLERK_SECRET_KEY must be set via: npx wrangler secret put CLERK_SECRET_KEY
-CLERK_PUBLISHABLE_KEY = "pk_test_REPLACE_WITH_YOUR_CLERK_PUBLISHABLE_KEY"
-
-# D1 Database binding - Production (default)
+# D1 Database binding
 [[d1_databases]]
 binding = "DB"
 database_name = "bptrack-db"
 database_id = "4cf465e3-2786-4c6d-a0f1-ef2acf923d2a"
 
-# Workers KV binding for sessions - Production (default)
+# Workers KV binding for sessions
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "55dc933c60534a52b641e13db27404f4"
 
-# Local D1 database for development (uncomment when using "wrangler dev")
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "bptrack-db-local"
-# database_id = "local"
-
-# Local KV namespace for development (uncomment when using "wrangler dev")
-# [[kv_namespaces]]
-# binding = "SESSIONS"
-# id = "local"
-
-# Limits and performance (CPU limits only available on paid plans)
-# [limits]
-# cpu_ms = 50
-
-# Production environment configuration
+# Production environment
 [env.production]
 [env.production.vars]
 ALLOWED_ORIGINS = "https://bptrack.pages.dev,https://*.pages.dev,https://bptrack.gautamlabs.in"
-SESSION_SECRET = "change-this-to-secure-random-string"
-CLERK_PUBLISHABLE_KEY = "pk_live_REPLACE_WITH_YOUR_PRODUCTION_CLERK_KEY"
+SESSION_SECRET = "change-this-to-a-secure-random-string"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -63,11 +37,3 @@ database_id = "4cf465e3-2786-4c6d-a0f1-ef2acf923d2a"
 [[env.production.kv_namespaces]]
 binding = "SESSIONS"
 id = "55dc933c60534a52b641e13db27404f4"
-
-# Staging environment configuration
-[env.staging]
-# Uncomment after creating staging D1 database
-# [[env.staging.d1_databases]]
-# binding = "DB"
-# database_name = "bptrack-db-staging"
-# database_id = "your-staging-database-id"

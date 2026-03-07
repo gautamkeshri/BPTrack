@@ -24,7 +24,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@clerk/backend": "^2.26.0",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.0.0",

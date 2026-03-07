@@ -9,6 +9,7 @@ import { logger } from './middleware/logger';
 import { errorHandler, notFoundHandler } from './middleware/error-handler';
 import profilesRoute from './routes/profiles';
 import readingsRoute from './routes/readings';
+import authRoute from './routes/auth';
 import type { Env } from './types';
 
 // Create main Hono app
@@ -30,6 +31,7 @@ app.get('/', (c) => {
 });
 
 // API routes
+app.route('/api/auth', authRoute);
 app.route('/api/profiles', profilesRoute);
 app.route('/api/readings', readingsRoute);
 

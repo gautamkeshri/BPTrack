@@ -1,4 +1,4 @@
-// Profiles API routes with Clerk authentication
+// Profiles API routes
 
 import { Hono } from 'hono';
 import { drizzle } from 'drizzle-orm/d1';
@@ -6,12 +6,11 @@ import { eq, and } from 'drizzle-orm';
 import { profiles, insertProfileSchema, type Profile } from '../db/schema';
 import { generateUUID } from '../utils/blood-pressure';
 import { createSession } from '../utils/session';
-import { requireAuth } from '../middleware/clerk-auth';
-import type { Env } from '../types';
+import { requireAuth } from '../middleware/session-auth';
+import type { Env, Variables } from '../types';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
-// Apply Clerk authentication to all profile routes
 app.use('*', requireAuth);
 
 /**
@@ -20,12 +19,12 @@ app.use('*', requireAuth);
  */
 app.get('/', async (c) => {
   const db = drizzle(c.env.DB);
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   const userProfiles = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.clerkUserId, clerkUserId))
+    .where(eq(profiles.userId, userId))
     .all();
 
   return c.json({
@@ -40,14 +39,14 @@ app.get('/', async (c) => {
  */
 app.get('/active', async (c) => {
   const db = drizzle(c.env.DB);
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   const activeProfile = await db
     .select()
     .from(profiles)
     .where(
       and(
-        eq(profiles.clerkUserId, clerkUserId),
+        eq(profiles.userId, userId),
         eq(profiles.isActive, true)
       )
     )
@@ -79,7 +78,7 @@ app.get('/active', async (c) => {
 app.get('/:id', async (c) => {
   const db = drizzle(c.env.DB);
   const id = c.req.param('id');
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   const profile = await db
     .select()
@@ -87,7 +86,7 @@ app.get('/:id', async (c) => {
     .where(
       and(
         eq(profiles.id, id),
-        eq(profiles.clerkUserId, clerkUserId)
+        eq(profiles.userId, userId)
       )
     )
     .get();
@@ -117,7 +116,7 @@ app.get('/:id', async (c) => {
  */
 app.post('/', async (c) => {
   const db = drizzle(c.env.DB);
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   try {
     const body = await c.req.json();
@@ -125,7 +124,7 @@ app.post('/', async (c) => {
 
     const newProfile: Profile = {
       id: generateUUID(),
-      clerkUserId: clerkUserId,  // Link profile to Clerk user
+      userId: userId,
       name: validatedData.name,
       gender: validatedData.gender,
       age: validatedData.age,
@@ -169,7 +168,7 @@ app.post('/', async (c) => {
 app.post('/:id/activate', async (c) => {
   const db = drizzle(c.env.DB);
   const id = c.req.param('id');
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   // Check if profile exists and is owned by user
   const profile = await db
@@ -178,7 +177,7 @@ app.post('/:id/activate', async (c) => {
     .where(
       and(
         eq(profiles.id, id),
-        eq(profiles.clerkUserId, clerkUserId)
+        eq(profiles.userId, userId)
       )
     )
     .get();
@@ -200,7 +199,7 @@ app.post('/:id/activate', async (c) => {
   await db
     .update(profiles)
     .set({ isActive: false })
-    .where(eq(profiles.clerkUserId, clerkUserId))
+    .where(eq(profiles.userId, userId))
     .run();
 
   // Activate the specified profile
@@ -230,7 +229,7 @@ app.post('/:id/activate', async (c) => {
 app.patch('/:id', async (c) => {
   const db = drizzle(c.env.DB);
   const id = c.req.param('id');
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   try {
     const body = await c.req.json();
@@ -246,7 +245,7 @@ app.patch('/:id', async (c) => {
       .where(
         and(
           eq(profiles.id, id),
-          eq(profiles.clerkUserId, clerkUserId)
+          eq(profiles.userId, userId)
         )
       )
       .get();
@@ -316,7 +315,7 @@ app.patch('/:id', async (c) => {
 app.delete('/:id', async (c) => {
   const db = drizzle(c.env.DB);
   const id = c.req.param('id');
-  const clerkUserId = c.get('clerkUserId');
+  const userId = c.get('userId');
 
   // Check if profile exists and is owned by user
   const profile = await db
@@ -325,7 +324,7 @@ app.delete('/:id', async (c) => {
     .where(
       and(
         eq(profiles.id, id),
-        eq(profiles.clerkUserId, clerkUserId)
+        eq(profiles.userId, userId)
       )
     )
     .get();

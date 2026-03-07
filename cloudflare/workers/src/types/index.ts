@@ -19,9 +19,16 @@ export interface RequestContext {
   executionCtx: ExecutionContext;
 }
 
+// Hono context variables set by session-auth middleware
+export interface Variables {
+  userId: string;
+  userRole: string;
+}
+
 // Session data structure
 export interface SessionData {
-  userId?: string;
+  userId: string;            // Required — set on login
+  role: string;              // 'patient' | 'doctor'
   activeProfileId?: string;
   createdAt: number;
   expiresAt: number;

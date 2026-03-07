@@ -1,8 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
-import { getQueryFn } from "./clerk-api";
+import { getQueryFn } from "./api";
 
-// Re-export apiRequest from clerk-api for backwards compatibility
-export { apiRequest } from "./clerk-api";
+// Re-export apiRequest from api for backwards compatibility
+export { apiRequest } from "./api";
 
 export const queryClient = new QueryClient({
   defaultOptions: {

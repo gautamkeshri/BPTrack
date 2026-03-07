@@ -3,10 +3,21 @@ import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
+// Users table — email+password auth for both patients and doctors
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  salt: text('salt').notNull(),
+  role: text('role').notNull().default('patient'), // 'patient' | 'doctor'
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+});
+
 // Profiles table
 export const profiles = sqliteTable('profiles', {
   id: text('id').primaryKey(),
-  clerkUserId: text('clerk_user_id'), // Clerk user ID for OAuth authentication
+  userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
   name: text('name').notNull(),
   gender: text('gender').notNull(), // 'male' | 'female'
   age: integer('age').notNull(),
@@ -48,7 +59,6 @@ export const insertProfileSchema = createInsertSchema(profiles).pick({
   name: true,
   gender: true,
   age: true,
-  clerkUserId: true,
 }).extend({
   medicalConditions: z.array(z.string()).optional().default([]),
 });
@@ -80,6 +90,7 @@ export const insertReminderSchema = createInsertSchema(reminders, {
 });
 
 // TypeScript types
+export type User = typeof users.$inferSelect;
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type BloodPressureReading = typeof bloodPressureReadings.$inferSelect;

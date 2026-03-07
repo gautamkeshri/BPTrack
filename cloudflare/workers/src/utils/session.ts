@@ -5,25 +5,55 @@ import type { Env, SessionData } from '../types';
 const SESSION_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 /**
- * Create a new session and store in KV
+ * Create a new auth session (used at login) and store in KV.
+ * Returns the session token to send to the client.
+ */
+export async function createAuthSession(
+  env: Env,
+  userId: string,
+  role: string
+): Promise<string> {
+  const sessionId = crypto.randomUUID();
+  const sessionData: SessionData = {
+    userId,
+    role,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + SESSION_EXPIRY,
+  };
+
+  await env.SESSIONS.put(
+    `session:${sessionId}`,
+    JSON.stringify(sessionData),
+    {
+      expirationTtl: Math.floor(SESSION_EXPIRY / 1000),
+    }
+  );
+
+  return sessionId;
+}
+
+/**
+ * Create a profile-scoped session (used when activating a profile).
  */
 export async function createSession(
   env: Env,
   profileId: string
 ): Promise<string> {
   const sessionId = crypto.randomUUID();
-  const sessionData: SessionData = {
+  // For backwards compat — legacy sessions without userId
+  const sessionData = {
+    userId: 'legacy',
+    role: 'patient',
     activeProfileId: profileId,
     createdAt: Date.now(),
     expiresAt: Date.now() + SESSION_EXPIRY,
   };
 
-  // Store in KV with expiration
   await env.SESSIONS.put(
     `session:${sessionId}`,
     JSON.stringify(sessionData),
     {
-      expirationTtl: Math.floor(SESSION_EXPIRY / 1000), // Convert to seconds
+      expirationTtl: Math.floor(SESSION_EXPIRY / 1000),
     }
   );
 
@@ -46,7 +76,6 @@ export async function getSession(
   try {
     const sessionData: SessionData = JSON.parse(data);
 
-    // Check if session is expired
     if (sessionData.expiresAt < Date.now()) {
       await deleteSession(env, sessionId);
       return null;
@@ -96,7 +125,7 @@ export async function deleteSession(env: Env, sessionId: string): Promise<void> 
 }
 
 /**
- * Extract session ID from request headers
+ * Extract session ID from request headers (Bearer token or session cookie)
  */
 export function getSessionIdFromRequest(request: Request): string | null {
   const authHeader = request.headers.get('Authorization');
@@ -105,7 +134,6 @@ export function getSessionIdFromRequest(request: Request): string | null {
     return authHeader.substring(7);
   }
 
-  // Also check for session cookie
   const cookies = request.headers.get('Cookie');
   if (cookies) {
     const match = cookies.match(/session=([^;]+)/);
