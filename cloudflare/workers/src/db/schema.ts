@@ -11,6 +11,9 @@ export const users = sqliteTable('users', {
   salt: text('salt').notNull(),
   role: text('role').notNull().default('patient'), // 'patient' | 'doctor'
   name: text('name').notNull(),
+  // Unique human-readable code for doctors: 'DR-XXXXXX' (6 uppercase hex chars)
+  // Only set for role='doctor'; null for patients
+  doctorId: text('doctor_id').unique(),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 });
 
@@ -52,6 +55,16 @@ export const reminders = sqliteTable('reminders', {
   daysOfWeek: text('days_of_week').notNull().default('[]'), // JSON array as TEXT
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+});
+
+// Access grants — patient grants a doctor read-only access to their BP data
+export const accessGrants = sqliteTable('access_grants', {
+  id: text('id').primaryKey(),
+  patientId: text('patient_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  doctorId: text('doctor_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'revoked'
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 });
 
 // Zod schemas for validation
@@ -97,3 +110,4 @@ export type BloodPressureReading = typeof bloodPressureReadings.$inferSelect;
 export type InsertBloodPressureReading = z.infer<typeof insertBloodPressureReadingSchema>;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = z.infer<typeof insertReminderSchema>;
+export type AccessGrant = typeof accessGrants.$inferSelect;
