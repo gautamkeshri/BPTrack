@@ -27,6 +27,7 @@ import { BloodPressureReading, Profile } from "@shared/schema";
 import { getClassificationColor, parseClassification } from "@/lib/blood-pressure";
 import { generateBloodPressureReport, downloadCSVReport } from "@/lib/pdf-generator";
 import { getApiUrl } from "@/config";
+import { getSessionToken } from "@/lib/api";
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'readings' | 'statistics' | 'charts'>('readings');
@@ -46,7 +47,18 @@ export default function Home() {
   });
 
   const { data: readings = [], isLoading: isLoadingReadings } = useQuery<BloodPressureReading[]>({
-    queryKey: ['/api/readings'],
+    queryKey: ['/api/readings', activeProfile?.id],
+    queryFn: async () => {
+      const token = getSessionToken();
+      const res = await fetch(getApiUrl('/api/readings'), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to fetch readings');
+      const json = await res.json();
+      return (json?.data ?? json) as BloodPressureReading[];
+    },
+    enabled: !!activeProfile,
   });
 
   const { data: statistics } = useQuery({
@@ -161,7 +173,7 @@ export default function Home() {
         {activeView === 'readings' && (
           <div className="p-4 space-y-4">
             {/* Quick Stats Card */}
-            {latestReading && (
+            {activeProfile && latestReading && (
               <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
                 <div className="flex justify-between items-start">
                   <div>

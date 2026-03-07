@@ -17,7 +17,14 @@
       "Bash(Remove-Item -Recurse -Force distpublic)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(gh issue list --state all --limit 50 --json number,title,state,body,labels)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(node seed-demo-users.mjs)",
+      "Bash(npm run check)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm install)",
+      "Bash(python3 -c \":*)"
     ],
     "deny": [],
     "ask": []
