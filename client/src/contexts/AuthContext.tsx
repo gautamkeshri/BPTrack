@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   name: string;
   role: "patient" | "doctor";
+  doctorId?: string | null;
 }
 
 interface AuthContextValue {

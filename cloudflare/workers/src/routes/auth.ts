@@ -97,7 +97,7 @@ app.get('/me', async (c) => {
 
   const db = drizzle(c.env.DB);
   const user = await db
-    .select({ id: users.id, email: users.email, name: users.name, role: users.role })
+    .select({ id: users.id, email: users.email, name: users.name, role: users.role, doctorId: users.doctorId })
     .from(users)
     .where(eq(users.id, session.userId))
     .get();
