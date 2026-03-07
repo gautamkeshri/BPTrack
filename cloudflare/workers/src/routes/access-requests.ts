@@ -1,8 +1,8 @@
 // Access request routes — patient looks up a doctor and sends an access request
 import { Hono } from 'hono';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
-import { users, accessGrants } from '../db/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import { users, accessGrants, profiles, bloodPressureReadings } from '../db/schema';
 import { requireAuth } from '../middleware/session-auth';
 import type { Env, Variables } from '../types';
 
@@ -132,6 +132,66 @@ app.post('/', async (c) => {
   }).run();
 
   return c.json({ success: true, data: { message: 'Access request sent', doctorName: doctor.name } }, 201);
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/access-requests/:patientId/readings
+// Doctor reads BP log for an approved patient
+// ---------------------------------------------------------------------------
+app.get('/:patientId/readings', async (c) => {
+  const doctorId = c.get('userId');
+  const userRole = c.get('userRole');
+  const patientId = c.req.param('patientId');
+
+  if (userRole !== 'doctor') {
+    return c.json({ success: false, error: { message: 'Only doctors can view patient readings', code: 'FORBIDDEN' } }, 403);
+  }
+
+  const db = drizzle(c.env.DB);
+
+  // Verify there is an approved grant
+  const grant = await db
+    .select({ id: accessGrants.id })
+    .from(accessGrants)
+    .where(and(
+      eq(accessGrants.doctorId, doctorId),
+      eq(accessGrants.patientId, patientId),
+      eq(accessGrants.status, 'approved'),
+    ))
+    .get();
+
+  if (!grant) {
+    return c.json({ success: false, error: { message: 'No approved access grant for this patient', code: 'FORBIDDEN' } }, 403);
+  }
+
+  // Get all profiles owned by the patient
+  const patientProfiles = await db
+    .select({ id: profiles.id })
+    .from(profiles)
+    .where(eq(profiles.userId, patientId))
+    .all();
+
+  if (patientProfiles.length === 0) {
+    return c.json({ success: true, data: [] });
+  }
+
+  // Get readings for all patient profiles
+  const profileIds = patientProfiles.map((p) => p.id);
+  const allReadings = [];
+  for (const pid of profileIds) {
+    const rows = await db
+      .select()
+      .from(bloodPressureReadings)
+      .where(eq(bloodPressureReadings.profileId, pid))
+      .orderBy(desc(bloodPressureReadings.readingDate))
+      .all();
+    allReadings.push(...rows);
+  }
+
+  // Sort combined readings newest-first
+  allReadings.sort((a, b) => new Date(b.readingDate).getTime() - new Date(a.readingDate).getTime());
+
+  return c.json({ success: true, data: allReadings });
 });
 
 // ---------------------------------------------------------------------------

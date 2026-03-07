@@ -4,10 +4,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Copy, Check, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Activity, Copy, Check, Clock, CheckCircle, XCircle, FileText } from "lucide-react";
 import { getApiUrl } from "@/config";
 import { getSessionToken } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+
+interface BPReading {
+  id: string;
+  systolic: number;
+  diastolic: number;
+  pulse: number;
+  readingDate: string | number;
+  classification: string;
+  pulseStressure: number;
+  meanArterialPressure: number;
+  notes?: string | null;
+}
 
 interface IncomingRequest {
   id: string;
@@ -22,6 +35,14 @@ const STATUS_CONFIG = {
   pending:  { label: "Pending",  icon: Clock,         className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
   approved: { label: "Approved", icon: CheckCircle,    className: "bg-green-100 text-green-700 border-green-200" },
   revoked:  { label: "Revoked",  icon: XCircle,        className: "bg-slate-100 text-slate-500 border-slate-200" },
+};
+
+const CLASSIFICATION_COLOR: Record<string, string> = {
+  "Normal": "bg-green-100 text-green-700 border-green-200",
+  "Elevated": "bg-yellow-100 text-yellow-700 border-yellow-200",
+  "Hypertension Stage 1": "bg-orange-100 text-orange-700 border-orange-200",
+  "Hypertension Stage 2": "bg-red-100 text-red-700 border-red-200",
+  "Hypertensive Crisis": "bg-red-200 text-red-900 border-red-400",
 };
 
 async function fetchJson(url: string) {
@@ -40,6 +61,7 @@ export default function DoctorPortalPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<{ id: string; name: string } | null>(null);
 
   const { data: requests = [], isLoading } = useQuery<IncomingRequest[]>({
     queryKey: ["/api/access-requests/incoming"],
@@ -70,6 +92,12 @@ export default function DoctorPortalPage() {
     onError: (err: Error) => {
       toast({ title: "Failed", description: err.message, variant: "destructive" });
     },
+  });
+
+  const { data: patientReadings = [], isLoading: isLoadingReadings } = useQuery<BPReading[]>({
+    queryKey: ["/api/access-requests", selectedPatient?.id, "readings"],
+    queryFn: () => fetchJson(`/api/access-requests/${selectedPatient!.id}/readings`),
+    enabled: !!selectedPatient,
   });
 
   const handleCopy = () => {
@@ -190,15 +218,28 @@ export default function DoctorPortalPage() {
                           </>
                         )}
                         {req.status === "approved" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs px-2"
-                            disabled={updateGrant.isPending}
-                            onClick={() => updateGrant.mutate({ id: req.id, status: "revoked" })}
-                          >
-                            Revoke
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs px-2 gap-1"
+                              onClick={() => setSelectedPatient(
+                                selectedPatient?.id === req.patientId ? null : { id: req.patientId, name: req.patientName }
+                              )}
+                            >
+                              <FileText className="h-3 w-3" />
+                              {selectedPatient?.id === req.patientId ? "Close" : "View Log"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs px-2"
+                              disabled={updateGrant.isPending}
+                              onClick={() => updateGrant.mutate({ id: req.id, status: "revoked" })}
+                            >
+                              Revoke
+                            </Button>
+                          </>
                         )}
                         {req.status === "revoked" && (
                           <Button
@@ -219,6 +260,62 @@ export default function DoctorPortalPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Patient BP Log (shown when a patient is selected) */}
+        {selectedPatient && (
+          <Card>
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base text-slate-700">
+                {selectedPatient.name}'s BP Log
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedPatient(null)}>
+                <XCircle className="h-4 w-4 text-slate-400" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {isLoadingReadings ? (
+                <p className="text-sm text-slate-400 py-6 text-center">Loading readings…</p>
+              ) : patientReadings.length === 0 ? (
+                <p className="text-sm text-slate-400 py-6 text-center">No readings recorded yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase tracking-wide">
+                        <th className="pb-2 pr-4">Date</th>
+                        <th className="pb-2 pr-4">Sys</th>
+                        <th className="pb-2 pr-4">Dia</th>
+                        <th className="pb-2 pr-4">Pulse</th>
+                        <th className="pb-2">Classification</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {patientReadings.map((r) => (
+                        <tr key={r.id} className="hover:bg-slate-50">
+                          <td className="py-2 pr-4 text-slate-600 whitespace-nowrap">
+                            {format(new Date(r.readingDate), "dd-MM-yyyy HH:mm")}
+                          </td>
+                          <td className="py-2 pr-4 font-medium text-slate-900">{r.systolic}</td>
+                          <td className="py-2 pr-4 font-medium text-slate-900">{r.diastolic}</td>
+                          <td className="py-2 pr-4 text-slate-700">{r.pulse}</td>
+                          <td className="py-2">
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${CLASSIFICATION_COLOR[r.classification] ?? "bg-slate-100 text-slate-600"}`}
+                            >
+                              {r.classification}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="text-xs text-slate-400 mt-3">{patientReadings.length} readings — read-only view</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
       </main>
     </div>
